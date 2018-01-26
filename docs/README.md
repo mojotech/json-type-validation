@@ -1,3 +1,4 @@
+
 # JSON Type Validation
 
 A typescript library to perform type checking and validation on untyped JSON
@@ -61,3 +62,17 @@ each perform a simple decoding operation. The decoder combinators `object`,
 `lazy` take decoders as inputs, and combined the decoders into more complicated
 structures. You can think of your own user-defined decoders as an extension of
 these composable units.
+
+
+
+## Index
+
+### External modules
+
+* ["combinators"](modules/_combinators_.md)
+* ["decoder"](modules/_decoder_.md)
+* ["result"](modules/_result_.md)
+
+
+
+---
