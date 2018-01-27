@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+SCRIPTNAME=$(basename $0)
+DIRNAME=$(dirname $0)
+MODE=$1
+
+shift
+
+print_help() {
+    echo "Usage: $SCRIPTNAME MODE"
+    echo "Enter a shell with all dependencies required for MODE."
+    echo "MODE is one of:"
+    echo "  build-shell - enter a shell for building the library"
+    echo "  build-watch - enter a build shell and run \`yarn start\`"
+    echo "  distribute - build the library and exist"
+    echo "  run COMMAND - enter a build shell and run the specified command"
+    echo "  help, --help, -h - display this help message"
+}
+if [ "$MODE" = "help" -o "$MODE" = "--help" -o "$MODE" = "-h" ]; then
+    print_help
+    exit 0
+fi
+
+if [ "$MODE" = "build-shell" ]; then
+    echo "Starting build shell..."
+    # --add-root, --indirect place a garbage collection root outside of the main
+    # nix store directory. This allows you to run nix-collect-garbage without
+    # collecting the dependencies for this package. To collect the dependencies
+    # for this package, delete the roots in gc-roots.
+    # --pure limits the generated shell to only those dependencies specified in
+    # the nix file.
+    nix-shell --pure --add-root $DIRNAME/../gc-roots/json-type-validation.drv --indirect $DIRNAME/../nix-files/shell.nix
+elif [ "$MODE" = "build-watch" ]; then
+    echo "Starting build watcher..."
+    nix-shell --pure --add-root $DIRNAME/../gc-roots/json-type-validation.drv --indirect $DIRNAME/../nix-files/shell.nix --run "yarn start"
+elif [ "$MODE" = "distribute" ]; then
+    echo "Building library for distribution..."
+    nix-shell --pure --add-root $DIRNAME/../gc-roots/json-type-validation.drv --indirect $DIRNAME/../nix-files/shell.nix --run "yarn build"
+
+elif [ "$MODE" = "run" ]; then
+    echo "Running \`$@\` in build environment..."
+    nix-shell --pure --add-root $DIRNAME/../gc-roots/json-type-validation.drv --indirect $DIRNAME/../nix-files/shell.nix --run "$*"
+else
+    echo "Must specify MODE!"
+    print_help
+    exit 1
+fi

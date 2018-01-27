@@ -82,3 +82,23 @@ const bullwinkle: Pet = petDecoder.runWithException(pet2)
 ## Documentation
 
 [Documentation](https://github.com/mojotech/json-type-validation/tree/master/docs).
+
+## Building
+
+### With Nix
+
+There exists some [Nix](https://nixos.org/nix) infrastructure that can be used
+to reproduce a build environment exactly. A helper shell script lives at
+`bin/jtv` that you can use to enter environments for multiple uses.
+You'll need to follow the directions on the Nix website to install and use the
+Nix package manager.
+
+* To enter a shell suitable for building the library run `./bin/jtv
+  build-shell`. This will leave you in the root of the project and automatically
+  install any project and npm dependencies. You can run further yarn commands
+  here.
+* To build the library for distribution and exit you can run `./bin/jtv distribute`.
+* To enter a build shell and run the build process, watching for changes, run
+  `./bin/jtv build-watch`.
+* To run an arbitrary command in a build environment use `./bin/jtv run
+  COMMAND`. For example, `./bin/jtv run yarn test` will run the tests and exit.
