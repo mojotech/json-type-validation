@@ -1,4 +1,14 @@
-import {Decoder, string, number, boolean, constant, array, dict, union, lazy} from '../src/index';
+import {
+  Decoder,
+  string,
+  number,
+  boolean,
+  constantNull,
+  array,
+  dict,
+  union,
+  lazy
+} from '../src/index';
 
 describe('create tagged json objects', () => {
   type TaggedJson =
@@ -12,7 +22,7 @@ describe('create tagged json objects', () => {
   const json: any = [{x: 1, y: 5}, {a: true, b: 'false'}, 1, true];
 
   const taggedJsonDecoder: Decoder<TaggedJson> = union(
-    constant(null).map<TaggedJson>(value => ({tag: 'null', value: value})),
+    constantNull().map<TaggedJson>(value => ({tag: 'null', value: value})),
     string().map<TaggedJson>(value => ({tag: 'string', value: value})),
     number().map<TaggedJson>(value => ({tag: 'number', value: value})),
     boolean().map<TaggedJson>(value => ({tag: 'boolean', value: value})),
