@@ -108,14 +108,14 @@ describe('anyJson', () => {
 });
 
 describe('constant', () => {
-  it('works when given null', () => {
-    const decoder = constant(null);
+  it('works for string-literals', () => {
+    const decoder = constant<'zero'>('zero');
 
-    expect(decoder.run(null)).toEqual({ok: true, result: null});
+    expect(decoder.run('zero')).toEqual({ok: true, result: 'zero'});
   });
 
   it('fails when given two different values', () => {
-    const decoder = constant(42);
+    const decoder = constant<42>(42);
 
     expect(decoder.run(true)).toMatchObject({
       ok: false,
