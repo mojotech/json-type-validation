@@ -137,8 +137,7 @@ export class Decoder<A> {
    * ```
    * const json: any = [1, true, 2, 3, 'five', 4, []];
    * const jsonArray: any[] = Result.withDefault([], array(anyJson()).run(json));
-   * const successes: Result.Ok<number>[] = jsonArray.map(number().run).filter(Result.isOk);
-   * const numbers: number[] = successes.map(ok => ok.result);
+   * const numbers: number[] = Result.successes(jsonArray.map(number().run));
    *
    * numbers
    * // => [1, 2, 3, 4]

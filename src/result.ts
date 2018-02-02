@@ -93,6 +93,12 @@ export const withException = <V>(r: Result<V, any>): V => {
 };
 
 /**
+ * Given an array of `Result`s, return the successful values.
+ */
+export const successes = <A>(results: Result<A, any>[]): A[] =>
+  results.reduce((acc: A[], r: Result<A, any>) => (r.ok === true ? acc.concat(r.result) : acc), []);
+
+/**
  * Apply `f` to the result of an `Ok`, or pass the error through.
  */
 export const map = <A, B, E>(f: (value: A) => B, r: Result<A, E>): Result<B, E> =>
