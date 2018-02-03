@@ -14,33 +14,69 @@ TODO
 
 ## Motivation
 
-TODO:
-* `JSON.parse` has a return type of `any`
-* It's up to the user to type the parsed json at runtime
-* A naive approach can be dangerous
-* Here's an alternative...
-* ...and here's an example
+Let's say we're creating a web app for our pet sitting business, and we've
+picked typescript as one of our core technologies. This is a great choice
+because the extra stability and type safety that typescript provides is really
+going to help us market our business.
 
+We've defined the data we need to track about each client's pet:
 ```
-import {Decoder, object, string, optional, number, boolean} from 'json-type-validation'
-
 interface Pet {
   name: string;
   species: string;
   age?: number;
   isCute?: boolean;
 }
+```
 
-petDecoder: Decoder<Pet> = object({
+And we've got some data about current client's pets which is stored as JSON:
+```
+const pet1: Pet = JSON.parse('{"name":"Lyle","species":"Crocodile","isCute":true}')
+const pet2: Pet = JSON.parse('{"name":"Bullwinkle","age":59}')
+```
+
+But that can't be right -- our data for `pet2` is missing information required
+for the `Pet` interface, but typescript compiles the code just fine!
+
+Of course this isn't an issue with typescript, but with our own type
+annotations. In typescript `JSON.parse` has a return type of `any`, which pushes
+the responsibility of verifying the type of data onto the user. By assuming that
+all of our data is correctly formed, we've left ourselves open to unexpected
+errors at runtime.
+
+Unfortunately typescript doesn't provide a good built-in way to deal with this
+issue. Providing run-time type information is one of typescript's
+[non-goals](https://github.com/Microsoft/TypeScript/wiki/TypeScript-Design-Goals#non-goals),
+and our web app is too important to risk using a forked version of typescript
+with that added functionality.
+[Type guards](https://basarat.gitbooks.io/typescript/docs/types/typeGuard.html)
+work, but are limited in that they circumvent type inference instead of working
+with it, and can be cumbersome to write.
+
+With `json-type-validation` we can define decoders that validate untyped json
+input. Decoders are concise, composable, and typecheck against our defined types
+and interfaces.
+```
+import {Decoder, object, string, optional, number, boolean} from 'json-type-validation'
+
+const petDecoder: Decoder<Pet> = object({
   name: string(),
   species: string(),
   age: optional(number()),
   isCute: optional(boolean())
 })
+```
 
-const input: any = {name: 'Lyle', species: 'Crocodile', isCute: true}
+Finally, we can choose from a number of decoding methods to validate json and
+report success or failure. When some json input fails validation the decoder
+clearly shows how the data was malformed.
+```
+const lyle: Pet = petDecoder.runWithException(pet1)
 
-const myPet: Pet = petDecoder.runWithException(input)
+const bullwinkle: Pet = petDecoder.runWithException(pet2)
+// Throws the exception:
+// `Input: {"name":"Bullwinkle","age":59}
+//  Failed at input.species: expected a string, got undefined`
 ```
 
 ## Documentation
