@@ -46,18 +46,3 @@ const myPet: Pet = petDecoder.runWithException(input)
 ## Documentation
 
 [Documentation](https://github.com/mojotech/json-type-validation/tree/master/docs).
-
-The best places to start are with the examples in the `test/` directory, and the
-documentation for
-[Decoder](https://github.com/mojotech/json-type-validation/blob/master/docs/classes/_decoder_.decoder.md).
-At some point you may need the documentation for
-[Result](https://github.com/mojotech/json-type-validation/blob/master/docs/modules/_result_.md).
-
-This library uses the [combinator pattern](https://wiki.haskell.org/Combinator_pattern)
-to build decoders. The decoder primitives `string`, `number`, `boolean`,
-`anyJson`, `constant`, `succeed`, and `fail` act as decoder building blocks that
-each perform a simple decoding operation. The decoder combinators `object`,
-`array`, `dict`, `optional`, `oneOf`, `union`, `withDefault`, `valueAt`, and
-`lazy` take decoders as inputs, and combined the decoders into more complicated
-structures. You can think of your own user-defined decoders as an extension of
-these composable units.

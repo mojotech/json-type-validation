@@ -77,7 +77,7 @@ const prependAt = (newAt: string, {at, ...rest}: Partial<DecoderError>): Partial
  * Each of the decoder functions are available both as a static method on
  * `Decoder` and as a function alias -- for example the string decoder is
  * defined at `Decoder.string()`, but is also aliased to `string()`. Using the
- * function aliases is recommended.
+ * function aliases exported with the library is recommended.
  *
  * `Decoder` exposes a number of 'run' methods, which all decode json in the
  * same way, but communicate success and failure in different ways. The `map`
@@ -92,8 +92,7 @@ export class Decoder<A> {
   private constructor(private decode: (json: any) => Result.Result<A, Partial<DecoderError>>) {}
 
   /**
-   * Decoder primitive that passes through string values, and fails on all other
-   * input.
+   * Decoder primitive that validates strings, and fails on all other input.
    */
   static string(): Decoder<string> {
     return new Decoder<string>(
@@ -105,8 +104,7 @@ export class Decoder<A> {
   }
 
   /**
-   * Decoder primitive that passes through number values, and fails on all other
-   * input.
+   * Decoder primitive that validates numbers, and fails on all other input.
    */
   static number(): Decoder<number> {
     return new Decoder<number>(
@@ -118,8 +116,7 @@ export class Decoder<A> {
   }
 
   /**
-   * Decoder primitive that passes through boolean values, and fails on all other
-   * input.
+   * Decoder primitive that validates booleans, and fails on all other input.
    */
   static boolean(): Decoder<boolean> {
     return new Decoder<boolean>(
@@ -154,7 +151,7 @@ export class Decoder<A> {
    * type be a type-literal. In such a case you must provide the type parameter,
    * which looks like `constant<'string to match'>('string to match')`.
    *
-   * Example:
+   * One place where this happens is when a type-literal is in an interface:
    * ```
    * interface Bear {
    *   kind: 'bear';
@@ -175,29 +172,23 @@ export class Decoder<A> {
    * // no compiler errors
    * ```
    *
-   * In this second case, using the type alias works just as well as using the
-   * string-literal types:
+   * Another is in type-literal unions:
    * ```
    * type animal = 'bird' | 'bear';
    *
-   * const animalDecoder1: Decoder<animal> = oneOf(
+   * const animalDecoder1: Decoder<animal> = union(
    *   constant('bird'),
    *   constant('bear')
    * );
-   * // Type 'Decoder<string>' is not assignable to type 'Decoder<animal>'. Type
-   * // 'string' is not assignable to type 'animal'.
+   * // Type 'Decoder<string>' is not assignable to type 'Decoder<animal>'.
+   * // Type 'string' is not assignable to type 'animal'.
    *
-   * const animalDecoder2: Decoder<animal> = oneOf(
-   *   constant<animal>('bird'),
-   *   constant<animal>('bear')
+   * const animalDecoder2: Decoder<animal> = union(
+   *   constant<'bird'>('bird'),
+   *   constant<'bear'>('bear')
    * );
    * // no compiler errors
    * ```
-   * This is technically not accurate, since the typing of
-   * `constant<animal>('bird')` asserts that the constant decoder could return
-   * either of the animal values, when it actually only decodes 'bird'. At the
-   * same time, since there is no exhaustiveness check on the decoder we don't
-   * gain anything by being more specific.
    */
   static constant = <A>(value: A): Decoder<A> =>
     new Decoder(
@@ -222,8 +213,8 @@ export class Decoder<A> {
   static constantFalse = (): Decoder<false> => Decoder.constant<false>(false);
 
   /**
-   * Decoder primitive that only matches the value `null`. It is a more ergonomic
-   * alias for `constant<null>(null)`.
+   * Decoder primitive that only matches the value `null`. It is equivalent to
+   * `constant(null)`, but is provided for completeness.
    */
   static constantNull = (): Decoder<null> => Decoder.constant<null>(null);
 
@@ -493,11 +484,11 @@ export class Decoder<A> {
     new Decoder<A>((json: any) => Result.err({message: errorMessage}));
 
   /**
-   * Decoder that allows for decoding recursive data structures. Unlike with
-   * functions, variables such as decoders can't reference themselves before
-   * they are fully defined. We can avoid prematurely referencing the decoder
-   * by wrapping it in a function that won't be called until use, at which
-   * point the decoder has been defined.
+   * Decoder that allows for validating recursive data structures. Unlike with
+   * functions, decoders assigned to variables can't reference themselves
+   * before they are fully defined. We can avoid prematurely referencing the
+   * decoder by wrapping it in a function that won't be called until use, at
+   * which point the decoder has been defined.
    *
    * Example:
    * ```
