@@ -241,6 +241,7 @@ export class Decoder<A> {
           if (decoders.hasOwnProperty(key)) {
             const r = decoders[key].decode(json[key]);
             if (r.ok === true) {
+              // tslint:disable-next-line:strict-type-predicates
               if (r.result !== undefined) {
                 obj[key] = r.result;
               }
