@@ -56,7 +56,7 @@ export function union <A, B, C, D, E, F>(ad: Decoder<A>, bd: Decoder<B>, cd: Dec
 export function union <A, B, C, D, E, F, G>(ad: Decoder<A>, bd: Decoder<B>, cd: Decoder<C>, dd: Decoder<D>, ed: Decoder<E>, fd: Decoder<F>, gd: Decoder<G>): Decoder<A | B | C | D | E | F | G>; // prettier-ignore
 export function union <A, B, C, D, E, F, G, H>(ad: Decoder<A>, bd: Decoder<B>, cd: Decoder<C>, dd: Decoder<D>, ed: Decoder<E>, fd: Decoder<F>, gd: Decoder<G>, hd: Decoder<H>): Decoder<A | B | C | D | E | F | G | H>; // prettier-ignore
 export function union(ad: Decoder<any>, bd: Decoder<any>, ...ds: Decoder<any>[]): Decoder<any> {
-  return Decoder.union(ad, bd, ...ds);
+  return Decoder.oneOf(ad, bd, ...ds);
 }
 
 /** See `Decoder.withDefault` */
