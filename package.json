@@ -28,8 +28,6 @@
     "deploy-docs": "ts-node tools/gh-pages-publish",
     "report-coverage": "cat ./coverage/lcov.info | coveralls",
     "commit": "git-cz",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
-    "semantic-release-prepare": "ts-node tools/semantic-release-prepare",
     "typecheck": "tsc --lib es2015 --noEmit --strict test/**.ts",
     "typecheck:watch": "tsc -w --lib es2015 --noEmit --strict test/**.ts"
   },
@@ -80,7 +78,6 @@
     "rollup-plugin-node-resolve": "^3.0.0",
     "rollup-plugin-sourcemaps": "^0.4.2",
     "rollup-plugin-typescript2": "^0.9.0",
-    "semantic-release": "^11.0.2",
     "ts-jest": "^22.0.0",
     "ts-node": "^4.1.0",
     "tslint": "^5.8.0",
