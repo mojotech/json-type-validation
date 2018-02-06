@@ -251,6 +251,16 @@ describe('object', () => {
       result: {a: true, b: 'hats'}
     });
   });
+
+  it('ignores optional fields that decode to undefined', () => {
+    const decoder = object({
+      a: number(),
+      b: optional(string())
+    });
+
+    expect(decoder.run({a: 12, b: 'hats'})).toEqual({ok: true, result: {a: 12, b: 'hats'}});
+    expect(decoder.run({a: 12})).toEqual({ok: true, result: {a: 12}});
+  });
 });
 
 describe('array', () => {
