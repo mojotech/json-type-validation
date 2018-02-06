@@ -241,7 +241,9 @@ export class Decoder<A> {
           if (decoders.hasOwnProperty(key)) {
             const r = decoders[key].decode(json[key]);
             if (r.ok === true) {
-              obj[key] = r.result;
+              if (r.result !== undefined) {
+                obj[key] = r.result;
+              }
             } else {
               return Result.err(prependAt(`.${key}`, r.error));
             }
