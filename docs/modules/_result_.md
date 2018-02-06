@@ -27,6 +27,7 @@
 * [map](_result_.md#map)
 * [mapError](_result_.md#maperror)
 * [ok](_result_.md#ok-1)
+* [successes](_result_.md#successes)
 * [withDefault](_result_.md#withdefault)
 * [withException](_result_.md#withexception)
 
@@ -345,6 +346,41 @@ Example: `ok(5) // => {ok: true, result: 5}`
 
 ___
 
+<a id="successes"></a>
+
+###  successes
+
+► **successes**A(results: *[Result](_result_.md#result)`A`, `any`[]*): `A`[]
+
+
+
+
+
+
+Given an array of `Result`s, return the successful values.
+
+
+**Type parameters:**
+
+#### A 
+**Parameters:**
+
+| Param | Type | Description |
+| ------ | ------ | ------ |
+| results | [Result](_result_.md#result)`A`, `any`[]   |  - |
+
+
+
+
+
+**Returns:** `A`[]
+
+
+
+
+
+___
+
 <a id="withdefault"></a>
 
 ###  withDefault
@@ -371,7 +407,7 @@ It would be nice if `Decoder` had an instance method that mirrored this function
 
     number().runWithDefault(5, json)
 
-Unfortunately, the return type of `A` on the method causes some strange issues with type inference on object decoders, so it seems to be more trouble than it's worth for now.
+Unfortunately, the type of `defaultValue: A` on the method causes issues with type inference on the `object` decoder in some situations. While these inference issues can be solved by providing the optional type argument for `object`s, the extra trouble and confusion doesn't seem worth it.
 
 
 **Type parameters:**

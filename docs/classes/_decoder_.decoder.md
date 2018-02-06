@@ -7,7 +7,7 @@
 
 Decoders transform json objects with unknown structure into known and verified forms. You can create objects of type `Decoder<A>` with either the primitive decoder functions, such as `boolean()` and `string()`, or by applying higher-order decoders to the primitives, such as `array(boolean())` or `dict(string())`.
 
-Each of the decoder functions are available both as a static method on `Decoder` and as a function alias -- for example the string decoder is defined at `Decoder.string()`, but is also aliased to `string()`. Using the function aliases is recommended.
+Each of the decoder functions are available both as a static method on `Decoder` and as a function alias -- for example the string decoder is defined at `Decoder.string()`, but is also aliased to `string()`. Using the function aliases exported with the library is recommended.
 
 `Decoder` exposes a number of 'run' methods, which all decode json in the same way, but communicate success and failure in different ways. The `map` and `andThen` methods modify decoders without having to call a 'run' method.
 
@@ -283,8 +283,7 @@ Example:
 
     const json: any = [1, true, 2, 3, 'five', 4, []];
     const jsonArray: any[] = Result.withDefault([], array(anyJson()).run(json));
-    const successes: Result.Ok<number>[] = jsonArray.map(number().run).filter(Result.isOk);
-    const numbers: number[] = successes.map(ok => ok.result);
+    const numbers: number[] = Result.successes(jsonArray.map(number().run));
 
     numbers
     // => [1, 2, 3, 4]
@@ -356,7 +355,7 @@ ___
 
 
 
-Decoder primitive that passes through boolean values, and fails on all other input.
+Decoder primitive that validates booleans, and fails on all other input.
 
 
 
@@ -384,7 +383,7 @@ Decoder primitive that only matches on exact values.
 
 Note that `constant('string to match')` returns a `Decoder<string>` which fails if the input is not equal to `'string to match'`. In many cases this is sufficient, but in some situations typescript requires that the decoder type be a type-literal. In such a case you must provide the type parameter, which looks like `constant<'string to match'>('string to match')`.
 
-Example:
+One place where this happens is when a type-literal is in an interface:
 
     interface Bear {
       kind: 'bear';
@@ -404,24 +403,22 @@ Example:
     });
     // no compiler errors
 
-In this second case, using the type alias works just as well as using the string-literal types:
+Another is in type-literal unions:
 
     type animal = 'bird' | 'bear';
 
-    const animalDecoder1: Decoder<animal> = oneOf(
+    const animalDecoder1: Decoder<animal> = union(
       constant('bird'),
       constant('bear')
     );
-    // Type 'Decoder<string>' is not assignable to type 'Decoder<animal>'. Type
-    // 'string' is not assignable to type 'animal'.
+    // Type 'Decoder<string>' is not assignable to type 'Decoder<animal>'.
+    // Type 'string' is not assignable to type 'animal'.
 
-    const animalDecoder2: Decoder<animal> = oneOf(
-      constant<animal>('bird'),
-      constant<animal>('bear')
+    const animalDecoder2: Decoder<animal> = union(
+      constant<'bird'>('bird'),
+      constant<'bear'>('bear')
     );
     // no compiler errors
-
-This is technically not accurate, since the typing of `constant<animal>('bird')` asserts that the constant decoder could return either of the animal values, when it actually only decodes 'bird'. At the same time, since there is no exhaustiveness check on the decoder we don't gain anything by being more specific.
 
 
 **Type parameters:**
@@ -480,7 +477,7 @@ ___
 
 
 
-Decoder primitive that only matches the value `null`. It is a more ergonomic alias for `constant<null>(null)`.
+Decoder primitive that only matches the value `null`. It is equivalent to `constant(null)`, but is provided for completeness.
 
 
 
@@ -603,7 +600,7 @@ ___
 
 
 
-Decoder that allows for decoding recursive data structures. Unlike with functions, variables such as decoders can't reference themselves before they are fully defined. We can avoid prematurely referencing the decoder by wrapping it in a function that won't be called until use, at which point the decoder has been defined.
+Decoder that allows for validating recursive data structures. Unlike with functions, decoders assigned to variables can't reference themselves before they are fully defined. We can avoid prematurely referencing the decoder by wrapping it in a function that won't be called until use, at which point the decoder has been defined.
 
 Example:
 
@@ -650,7 +647,7 @@ ___
 
 
 
-Decoder primitive that passes through number values, and fails on all other input.
+Decoder primitive that validates numbers, and fails on all other input.
 
 
 
@@ -807,7 +804,7 @@ ___
 
 
 
-Decoder primitive that passes through string values, and fails on all other input.
+Decoder primitive that validates strings, and fails on all other input.
 
 
 

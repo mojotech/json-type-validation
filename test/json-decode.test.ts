@@ -108,14 +108,14 @@ describe('anyJson', () => {
 });
 
 describe('constant', () => {
-  it('works when given null', () => {
-    const decoder = constant(null);
+  it('works for string-literals', () => {
+    const decoder = constant<'zero'>('zero');
 
-    expect(decoder.run(null)).toEqual({ok: true, result: null});
+    expect(decoder.run('zero')).toEqual({ok: true, result: 'zero'});
   });
 
   it('fails when given two different values', () => {
-    const decoder = constant(42);
+    const decoder = constant<42>(42);
 
     expect(decoder.run(true)).toMatchObject({
       ok: false,
@@ -677,18 +677,6 @@ describe('runPromise', () => {
   });
 });
 
-describe('run with default value', () => {
-  const decoder = number();
-
-  it('succeeds with the value', () => {
-    expect(Result.withDefault(0, decoder.run(12))).toEqual(12);
-  });
-
-  it('succeeds with the default value instead of failing', () => {
-    expect(Result.withDefault(0, decoder.run('999'))).toEqual(0);
-  });
-});
-
 describe('runWithException', () => {
   const decoder = boolean();
 
@@ -760,5 +748,27 @@ describe('andThen', () => {
         error: {at: 'input.a', message: 'expected a boolean, got 1'}
       });
     });
+  });
+});
+
+describe('Result', () => {
+  describe('can run a decoder with default value', () => {
+    const decoder = number();
+
+    it('succeeds with the value', () => {
+      expect(Result.withDefault(0, decoder.run(12))).toEqual(12);
+    });
+
+    it('succeeds with the default value instead of failing', () => {
+      expect(Result.withDefault(0, decoder.run('999'))).toEqual(0);
+    });
+  });
+
+  it('can return successes from an array of decoded values', () => {
+    const json: any = [1, true, 2, 3, 'five', 4, []];
+    const jsonArray: any[] = Result.withDefault([], array(anyJson()).run(json));
+    const numbers: number[] = Result.successes(jsonArray.map(number().run));
+
+    expect(numbers).toEqual([1, 2, 3, 4]);
   });
 });

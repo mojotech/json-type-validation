@@ -74,9 +74,10 @@ export const asPromise = <V>(r: Result<V, any>): Promise<V> =>
  *
  * number().runWithDefault(5, json)
  * ```
- * Unfortunately, the return type of `A` on the method causes some strange
- * issues with type inference on object decoders, so it seems to be more
- * trouble than it's worth for now.
+ * Unfortunately, the type of `defaultValue: A` on the method causes issues
+ * with type inference on  the `object` decoder in some situations. While these
+ * inference issues can be solved by providing the optional type argument for
+ * `object`s, the extra trouble and confusion doesn't seem worth it.
  */
 export const withDefault = <V>(defaultValue: V, r: Result<V, any>): V =>
   r.ok === true ? r.result : defaultValue;
@@ -91,6 +92,12 @@ export const withException = <V>(r: Result<V, any>): V => {
     throw new Error(r.error);
   }
 };
+
+/**
+ * Given an array of `Result`s, return the successful values.
+ */
+export const successes = <A>(results: Result<A, any>[]): A[] =>
+  results.reduce((acc: A[], r: Result<A, any>) => (r.ok === true ? acc.concat(r.result) : acc), []);
 
 /**
  * Apply `f` to the result of an `Ok`, or pass the error through.
