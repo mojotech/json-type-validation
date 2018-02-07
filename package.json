@@ -1,7 +1,7 @@
 {
-  "name": "json-type-validation",
-  "version": "0.0.0",
-  "description": "",
+  "name": "@mojotech/json-type-validation",
+  "version": "1.0.0",
+  "description": "runtime type checking and validation of untyped JSON data",
   "keywords": [],
   "main": "dist/json-type-validation.umd.js",
   "module": "dist/json-type-validation.es5.js",
