@@ -1,4 +1,4 @@
-[json-type-validation](../README.md) > ["decoder"](../modules/_decoder_.md) > [DecoderError](../interfaces/_decoder_.decodererror.md)
+[@mojotech/json-type-validation](../README.md) > ["decoder"](../modules/_decoder_.md) > [DecoderError](../interfaces/_decoder_.decodererror.md)
 
 
 
