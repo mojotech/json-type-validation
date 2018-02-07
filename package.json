@@ -1,7 +1,7 @@
 {
-  "name": "json-type-validation",
-  "version": "0.0.0",
-  "description": "",
+  "name": "@mojotech/json-type-validation",
+  "version": "1.0.0",
+  "description": "runtime type checking and validation of untyped JSON data",
   "keywords": [],
   "main": "dist/json-type-validation.umd.js",
   "module": "dist/json-type-validation.es5.js",
@@ -31,16 +31,6 @@
     "typecheck": "tsc --lib es2015 --noEmit --strict test/**.ts",
     "typecheck:watch": "tsc -w --lib es2015 --noEmit --strict test/**.ts"
   },
-  "config": {
-    "commitizen": {
-      "path": "node_modules/cz-conventional-changelog"
-    },
-    "validate-commit-msg": {
-      "types": "conventional-commit-types",
-      "helpMessage":
-        "Use \"npm run commit\" instead, we use conventional-changelog format :) (https://github.com/commitizen/cz-cli)"
-    }
-  },
   "jest": {
     "transform": {
       ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
@@ -63,10 +53,8 @@
     "@types/jest": "^22.0.0",
     "@types/node": "^8.0.0",
     "colors": "^1.1.2",
-    "commitizen": "^2.9.6",
     "coveralls": "^3.0.0",
     "cross-env": "^5.0.1",
-    "cz-conventional-changelog": "^2.0.0",
     "jest": "^22.0.2",
     "lodash.camelcase": "^4.3.0",
     "prettier": "^1.4.4",
@@ -85,7 +73,6 @@
     "tslint-config-standard": "^7.0.0",
     "typedoc": "^0.9.0",
     "typedoc-plugin-markdown": "^1.0.12",
-    "typescript": "~2.6.2",
-    "validate-commit-msg": "^2.12.2"
+    "typescript": "~2.6.2"
   }
 }

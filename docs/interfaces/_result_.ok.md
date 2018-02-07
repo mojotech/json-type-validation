@@ -1,4 +1,4 @@
-[json-type-validation](../README.md) > ["result"](../modules/_result_.md) > [Ok](../interfaces/_result_.ok.md)
+[@mojotech/json-type-validation](../README.md) > ["result"](../modules/_result_.md) > [Ok](../interfaces/_result_.ok.md)
 
 
 

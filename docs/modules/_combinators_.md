@@ -1,4 +1,4 @@
-[json-type-validation](../README.md) > ["combinators"](../modules/_combinators_.md)
+[@mojotech/json-type-validation](../README.md) > ["combinators"](../modules/_combinators_.md)
 
 
 

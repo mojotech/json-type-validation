@@ -1,0 +1,17 @@
+.git/
+.rpt2_cache/
+bin/
+coverage/
+nix-files/
+node_modules/
+src/
+test/
+.gitignore
+.prettierrc
+.travis.yml
+rollup.config.ts
+tags
+tsconfig-test.json
+tsconfig.json
+tslint.json
+yarn.lock

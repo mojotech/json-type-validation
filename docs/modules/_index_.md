@@ -1,4 +1,4 @@
-[json-type-validation](../README.md) > ["index"](../modules/_index_.md)
+[@mojotech/json-type-validation](../README.md) > ["index"](../modules/_index_.md)
 
 
 
