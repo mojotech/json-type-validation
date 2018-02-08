@@ -2,7 +2,7 @@
   "name": "@mojotech/json-type-validation",
   "version": "1.0.0",
   "description": "runtime type checking and validation of untyped JSON data",
-  "keywords": [],
+  "keywords": ["TypeScript", "JSON"],
   "main": "dist/json-type-validation.umd.js",
   "module": "dist/json-type-validation.es5.js",
   "typings": "dist/types/json-type-validation.d.ts",
@@ -10,8 +10,12 @@
   "author": "Elias Mulhall <elias@mojotech.com>",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/mojotech/json-type-validation"
   },
+  "bugs": {
+    "url": "https://github.com/mojotech/json-type-validation/issues"
+  },
+  "homepage": "https://github.com/mojotech/json-type-validation",
   "license": "MIT",
   "engines": {
     "node": ">=6.0.0"
