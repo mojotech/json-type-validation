@@ -9,8 +9,9 @@ This library owes thanks to:
 - The Elm [Json.Decode](http://package.elm-lang.org/packages/elm-lang/core/latest/Json-Decode) API
 
 ## Installation
-
-TODO
+```
+npm i @mojotech/json-type-validation
+```
 
 ## Motivation
 
