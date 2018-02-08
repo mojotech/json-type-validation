@@ -1,12 +1,17 @@
 {
   "name": "@mojotech/json-type-validation",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "runtime type checking and validation of untyped JSON data",
-  "keywords": ["TypeScript", "JSON"],
+  "keywords": [
+    "TypeScript",
+    "JSON"
+  ],
   "main": "dist/index.umd.js",
   "module": "dist/index.es5.js",
   "typings": "dist/types/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "author": "Elias Mulhall <elias@mojotech.com>",
   "repository": {
     "type": "git",
@@ -23,8 +28,7 @@
   "scripts": {
     "lint": "tslint -t codeFrame --project tsconfig-test.json",
     "prebuild": "rimraf dist",
-    "build":
-      "tsc --module commonjs --outDir dist/lib && rollup -c rollup.config.ts && typedoc --out docs --target es6 --theme markdown --readme DOCS.md --mdHideSources --mode modules --excludeNotExported src",
+    "build": "tsc --module commonjs --outDir dist/lib && rollup -c rollup.config.ts && typedoc --out docs --target es6 --theme markdown --readme DOCS.md --mdHideSources --mode modules --excludeNotExported src",
     "start": "rollup -c rollup.config.ts -w",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -40,8 +44,15 @@
       ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
     "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
-    "moduleFileExtensions": ["ts", "tsx", "js"],
-    "coveragePathIgnorePatterns": ["/node_modules/", "/test/"],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/test/"
+    ],
     "coverageThreshold": {
       "global": {
         "branches": 90,
