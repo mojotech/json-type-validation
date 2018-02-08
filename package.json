@@ -3,9 +3,9 @@
   "version": "1.0.1",
   "description": "runtime type checking and validation of untyped JSON data",
   "keywords": ["TypeScript", "JSON"],
-  "main": "dist/json-type-validation.umd.js",
-  "module": "dist/json-type-validation.es5.js",
-  "typings": "dist/types/json-type-validation.d.ts",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.es5.js",
+  "typings": "dist/types/index.d.ts",
   "files": ["dist"],
   "author": "Elias Mulhall <elias@mojotech.com>",
   "repository": {
