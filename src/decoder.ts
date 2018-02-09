@@ -470,7 +470,10 @@ export class Decoder<A> {
         }
       }
       return Result.mapError(
-        error => prependAt(printPath(paths), error),
+        error =>
+          jsonAtPath === undefined
+            ? {at: printPath(paths), message: 'path does not exist'}
+            : prependAt(printPath(paths), error),
         decoder.decode(jsonAtPath)
       );
     });

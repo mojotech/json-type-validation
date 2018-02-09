@@ -453,7 +453,7 @@ describe('oneOf', () => {
         message:
           'expected a value matching one of the decoders, got the errors ' +
           '["at error[1].a.b: expected a number, got true", ' +
-          '"at error[1].a.x: expected a number, got undefined"]'
+          '"at error[1].a.x: path does not exist"]'
       }
     });
   });
