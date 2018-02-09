@@ -370,7 +370,7 @@ export class Decoder<A> {
         }
       }
       const errorsList = errors
-        .map(error => `at input${error.at || ''}: ${error.message}`)
+        .map(error => `at error${error.at || ''}: ${error.message}`)
         .join('", "');
       return Result.err({
         message: `expected a value matching one of the decoders, got the errors ["${errorsList}"]`
