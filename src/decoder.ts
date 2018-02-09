@@ -369,12 +369,11 @@ export class Decoder<A> {
           errors[i] = r.error;
         }
       }
-      const errorsList =
-        '["' +
-        errors.map(error => `at input${error.at || ''}: ${error.message}`).join('", "') +
-        '"]';
+      const errorsList = errors
+        .map(error => `at input${error.at || ''}: ${error.message}`)
+        .join('", "');
       return Result.err({
-        message: `expected a value matching one of the decoders, got the errors ${errorsList}`
+        message: `expected a value matching one of the decoders, got the errors ["${errorsList}"]`
       });
     });
 
