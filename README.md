@@ -81,7 +81,7 @@ const lyle: Pet = petDecoder.runWithException(pet1)
 const bullwinkle: Pet = petDecoder.runWithException(pet2)
 // Throws the exception:
 // `Input: {"name":"Bullwinkle","age":59}
-//  Failed at input.species: expected a string, got undefined`
+//  Failed at input: the key 'species' is required but was not present`
 ```
 
 ## Documentation

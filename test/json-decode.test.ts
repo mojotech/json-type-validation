@@ -200,7 +200,7 @@ describe('object', () => {
 
       expect(decoder.run({})).toMatchObject({
         ok: false,
-        error: {at: 'input.x', message: 'expected a number, got undefined'}
+        error: {at: 'input', message: "the key 'x' is required but was not present"}
       });
     });
 

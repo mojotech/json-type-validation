@@ -245,6 +245,8 @@ export class Decoder<A> {
               if (r.result !== undefined) {
                 obj[key] = r.result;
               }
+            } else if (json[key] === undefined) {
+              return Result.err({message: `the key '${key}' is required but was not present`});
             } else {
               return Result.err(prependAt(`.${key}`, r.error));
             }
