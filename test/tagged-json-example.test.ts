@@ -3,7 +3,7 @@ import {
   string,
   number,
   boolean,
-  constantNull,
+  constant,
   array,
   dict,
   union,
@@ -22,7 +22,7 @@ describe('create tagged json objects', () => {
   const json: any = [{x: 1, y: 5}, {a: true, b: 'false'}, 1, true];
 
   const taggedJsonDecoder: Decoder<TaggedJson> = union(
-    constantNull().map<TaggedJson>(value => ({tag: 'null', value: value})),
+    constant(null).map<TaggedJson>(value => ({tag: 'null', value: value})),
     string().map<TaggedJson>(value => ({tag: 'string', value: value})),
     number().map<TaggedJson>(value => ({tag: 'number', value: value})),
     boolean().map<TaggedJson>(value => ({tag: 'boolean', value: value})),

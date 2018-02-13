@@ -3,8 +3,6 @@ import {
   string,
   number,
   constant,
-  constantTrue,
-  constantFalse,
   object,
   array,
   optional,
@@ -47,14 +45,14 @@ describe('decode phone number objects', () => {
   const internationalPhoneDecoder: Decoder<InternationalPhone> = object({
     id: number(),
     use: optional(phoneUseDecoder),
-    international: constantTrue(),
+    international: constant(true),
     rawNumber: string()
   });
 
   const domesticPhoneDecoder: Decoder<DomesticPhone> = object({
     id: number(),
     use: optional(phoneUseDecoder),
-    international: constantFalse(),
+    international: constant(false),
     areaCode: string(),
     prefix: string(),
     lineNumber: string()
