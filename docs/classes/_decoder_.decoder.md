@@ -28,9 +28,6 @@ Alternatively, the main decoder `run()` method returns an object of type `Result
 * [array](_decoder_.decoder.md#array)
 * [boolean](_decoder_.decoder.md#boolean)
 * [constant](_decoder_.decoder.md#constant)
-* [constantFalse](_decoder_.decoder.md#constantfalse)
-* [constantNull](_decoder_.decoder.md#constantnull)
-* [constantTrue](_decoder_.decoder.md#constanttrue)
 * [dict](_decoder_.decoder.md#dict)
 * [fail](_decoder_.decoder.md#fail)
 * [lazy](_decoder_.decoder.md#lazy)
@@ -372,6 +369,10 @@ ___
 
 ### «Static» constant
 
+► **constant**(value: *`true`*): [Decoder](_decoder_.decoder.md)`true`
+
+► **constant**(value: *`false`*): [Decoder](_decoder_.decoder.md)`false`
+
 ► **constant**A(value: *`A`*): [Decoder](_decoder_.decoder.md)`A`
 
 
@@ -382,6 +383,18 @@ ___
 Decoder primitive that only matches on exact values.
 
 Note that `constant('string to match')` returns a `Decoder<string>` which fails if the input is not equal to `'string to match'`. In many cases this is sufficient, but in some situations typescript requires that the decoder type be a type-literal. In such a case you must provide the type parameter, which looks like `constant<'string to match'>('string to match')`.
+
+Providing the type parameter is only necessary for type-literal strings and numbers, as detailed by this table:
+
+     | Decoder                      | Type              |
+     | ---------------------------- | ----------------- |
+     | constant(true)               | Decoder<true>     |
+     | constant(false)              | Decoder<false>    |
+     | constant(null)               | Decoder<null>     |
+     | constant('alaska')           | Decoder<string>   |
+     | constant<'alaska'>('alaska') | Decoder<'alaska'> |
+     | constant(50)                 | Decoder<number>   |
+     | constant<50>(50)             | Decoder<50>       |
 
 One place where this happens is when a type-literal is in an interface:
 
@@ -421,6 +434,40 @@ Another is in type-literal unions:
     // no compiler errors
 
 
+**Parameters:**
+
+| Param | Type | Description |
+| ------ | ------ | ------ |
+| value | `true`   |  - |
+
+
+
+
+
+**Returns:** [Decoder](_decoder_.decoder.md)`true`
+
+
+
+
+
+
+**Parameters:**
+
+| Param | Type | Description |
+| ------ | ------ | ------ |
+| value | `false`   |  - |
+
+
+
+
+
+**Returns:** [Decoder](_decoder_.decoder.md)`false`
+
+
+
+
+
+
 **Type parameters:**
 
 #### A 
@@ -435,78 +482,6 @@ Another is in type-literal unions:
 
 
 **Returns:** [Decoder](_decoder_.decoder.md)`A`
-
-
-
-
-
-___
-
-<a id="constantfalse"></a>
-
-### «Static» constantFalse
-
-► **constantFalse**(): [Decoder](_decoder_.decoder.md)`false`
-
-
-
-
-
-
-Decoder primitive that only matches the value `false`, and returns the decoder `Decoder<false>` instead of `Decoder<boolean>`. It is a more ergonomic alias for `constant<false>(false)`.
-
-
-
-
-**Returns:** [Decoder](_decoder_.decoder.md)`false`
-
-
-
-
-
-___
-
-<a id="constantnull"></a>
-
-### «Static» constantNull
-
-► **constantNull**(): [Decoder](_decoder_.decoder.md)`null`
-
-
-
-
-
-
-Decoder primitive that only matches the value `null`. It is equivalent to `constant(null)`, but is provided for completeness.
-
-
-
-
-**Returns:** [Decoder](_decoder_.decoder.md)`null`
-
-
-
-
-
-___
-
-<a id="constanttrue"></a>
-
-### «Static» constantTrue
-
-► **constantTrue**(): [Decoder](_decoder_.decoder.md)`true`
-
-
-
-
-
-
-Decoder primitive that only matches the value `true`, and returns the decoder `Decoder<true>` instead of `Decoder<boolean>`. It is a more ergonomic alias for `constant<true>(true)`.
-
-
-
-
-**Returns:** [Decoder](_decoder_.decoder.md)`true`
 
 
 
