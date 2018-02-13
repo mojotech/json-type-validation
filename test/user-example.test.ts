@@ -40,7 +40,7 @@ describe('decode json as User interface', () => {
     const error = userDecoder.run(invalidUserJson);
     expect(error).toMatchObject({
       ok: false,
-      error: {at: 'input.lastname', message: 'expected a string, got undefined'}
+      error: {at: 'input', message: "the key 'lastname' is required but was not present"}
     });
   });
 });

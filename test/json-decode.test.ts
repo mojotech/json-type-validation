@@ -200,7 +200,7 @@ describe('object', () => {
 
       expect(decoder.run({})).toMatchObject({
         ok: false,
-        error: {at: 'input.x', message: 'expected a number, got undefined'}
+        error: {at: 'input', message: "the key 'x' is required but was not present"}
       });
     });
 
@@ -436,7 +436,24 @@ describe('oneOf', () => {
         at: 'input',
         message:
           'expected a value matching one of the decoders, got the errors ' +
-          '["at input: expected a string, got []", "at input: expected a number, got []"]'
+          '["at error: expected a string, got []", "at error: expected a number, got []"]'
+      }
+    });
+  });
+
+  it('fails and reports errors for nested values', () => {
+    const decoder = array(
+      oneOf(valueAt([1, 'a', 'b'], number()), valueAt([1, 'a', 'x'], number()))
+    );
+
+    expect(decoder.run([[{}, {a: {b: true}}]])).toMatchObject({
+      ok: false,
+      error: {
+        at: 'input[0]',
+        message:
+          'expected a value matching one of the decoders, got the errors ' +
+          '["at error[1].a.b: expected a number, got true", ' +
+          '"at error[1].a.x: path does not exist"]'
       }
     });
   });
@@ -479,7 +496,7 @@ describe('union', () => {
         at: 'input',
         message:
           'expected a value matching one of the decoders, got the errors ' +
-          '["at input.kind: expected "a", got "b"", "at input.value: expected a boolean, got 12"]'
+          '["at error.kind: expected "a", got "b"", "at error.value: expected a boolean, got 12"]'
       }
     });
   });

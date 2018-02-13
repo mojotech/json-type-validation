@@ -245,6 +245,8 @@ export class Decoder<A> {
               if (r.result !== undefined) {
                 obj[key] = r.result;
               }
+            } else if (json[key] === undefined) {
+              return Result.err({message: `the key '${key}' is required but was not present`});
             } else {
               return Result.err(prependAt(`.${key}`, r.error));
             }
@@ -367,12 +369,11 @@ export class Decoder<A> {
           errors[i] = r.error;
         }
       }
-      const errorsList =
-        '["' +
-        errors.map(error => `at input${error.at || ''}: ${error.message}`).join('", "') +
-        '"]';
+      const errorsList = errors
+        .map(error => `at error${error.at || ''}: ${error.message}`)
+        .join('", "');
       return Result.err({
-        message: `expected a value matching one of the decoders, got the errors ${errorsList}`
+        message: `expected a value matching one of the decoders, got the errors ["${errorsList}"]`
       });
     });
 
@@ -469,7 +470,10 @@ export class Decoder<A> {
         }
       }
       return Result.mapError(
-        error => prependAt(printPath(paths), error),
+        error =>
+          jsonAtPath === undefined
+            ? {at: printPath(paths), message: 'path does not exist'}
+            : prependAt(printPath(paths), error),
         decoder.decode(jsonAtPath)
       );
     });
