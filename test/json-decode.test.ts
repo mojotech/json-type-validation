@@ -7,9 +7,6 @@ import {
   boolean,
   anyJson,
   constant,
-  constantTrue,
-  constantFalse,
-  constantNull,
   object,
   array,
   dict,
@@ -122,36 +119,30 @@ describe('constant', () => {
       error: {at: 'input', message: 'expected 42, got true'}
     });
   });
-});
 
-describe('constantTrue', () => {
   it('can decode the true-literal type', () => {
     interface TrueValue {
       x: true;
     }
-    const decoder: Decoder<TrueValue> = object({x: constantTrue()});
+    const decoder: Decoder<TrueValue> = object({x: constant(true)});
 
     expect(decoder.run({x: true})).toEqual({ok: true, result: {x: true}});
   });
-});
 
-describe('constantFalse', () => {
   it('can decode the false-literal type', () => {
     interface FalseValue {
       x: false;
     }
-    const decoder: Decoder<FalseValue> = object({x: constantFalse()});
+    const decoder: Decoder<FalseValue> = object({x: constant(false)});
 
     expect(decoder.run({x: false})).toEqual({ok: true, result: {x: false}});
   });
-});
 
-describe('constantNull', () => {
   it('can decode the null-literal type', () => {
     interface NullValue {
       x: null;
     }
-    const decoder: Decoder<NullValue> = object({x: constantNull()});
+    const decoder: Decoder<NullValue> = object({x: constant(null)});
 
     expect(decoder.run({x: null})).toEqual({ok: true, result: {x: null}});
   });
@@ -168,7 +159,7 @@ describe('object', () => {
     it('can decode a nested object', () => {
       const decoder = object({
         payload: object({x: number(), y: number()}),
-        error: constantFalse()
+        error: constant(false)
       });
       const json = {payload: {x: 5, y: 2}, error: false};
 

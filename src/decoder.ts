@@ -151,6 +151,22 @@ export class Decoder<A> {
    * type be a type-literal. In such a case you must provide the type parameter,
    * which looks like `constant<'string to match'>('string to match')`.
    *
+   * Providing the type parameter is only necessary for type-literal strings
+   * and numbers, as detailed by this table:
+   *
+   * ```
+   *  | Decoder                      | Type              |
+   *  | ---------------------------- | ----------------- |
+   *  | constant(true)               | Decoder<true>     |
+   *  | constant(false)              | Decoder<false>    |
+   *  | constant(null)               | Decoder<null>     |
+   *  | constant('alaska')           | Decoder<string>   |
+   *  | constant<'alaska'>('alaska') | Decoder<'alaska'> |
+   *  | constant(50)                 | Decoder<number>   |
+   *  | constant<50>(50)             | Decoder<50>       |
+   * ```
+   *
+   *
    * One place where this happens is when a type-literal is in an interface:
    * ```
    * interface Bear {
@@ -190,33 +206,17 @@ export class Decoder<A> {
    * // no compiler errors
    * ```
    */
-  static constant = <A>(value: A): Decoder<A> =>
-    new Decoder(
+  static constant(value: true): Decoder<true>;
+  static constant(value: false): Decoder<false>;
+  static constant<A>(value: A): Decoder<A>;
+  static constant(value: any): Decoder<any> {
+    return new Decoder(
       (json: any) =>
         json === value
           ? Result.ok(value)
           : Result.err({message: expectedGot(JSON.stringify(value), json)})
     );
-
-  /**
-   * Decoder primitive that only matches the value `true`, and returns the
-   * decoder `Decoder<true>` instead of `Decoder<boolean>`. It is a more
-   * ergonomic alias for `constant<true>(true)`.
-   */
-  static constantTrue = (): Decoder<true> => Decoder.constant<true>(true);
-
-  /**
-   * Decoder primitive that only matches the value `false`, and returns the
-   * decoder `Decoder<false>` instead of `Decoder<boolean>`. It is a more
-   * ergonomic alias for `constant<false>(false)`.
-   */
-  static constantFalse = (): Decoder<false> => Decoder.constant<false>(false);
-
-  /**
-   * Decoder primitive that only matches the value `null`. It is equivalent to
-   * `constant(null)`, but is provided for completeness.
-   */
-  static constantNull = (): Decoder<null> => Decoder.constant<null>(null);
+  }
 
   /**
    * An higher-order decoder that runs decoders on specified fields of an object,

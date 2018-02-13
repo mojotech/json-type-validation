@@ -19,16 +19,12 @@ export function boolean(): Decoder<boolean> {
 export const anyJson: () => Decoder<any> = Decoder.anyJson;
 
 /** See `Decoder.constant` */
-export const constant: <A>(value: A) => Decoder<A> = Decoder.constant;
-
-/** See `Decoder.constantTrue` */
-export const constantTrue: () => Decoder<true> = Decoder.constantTrue;
-
-/** See `Decoder.constantFalse` */
-export const constantFalse: () => Decoder<false> = Decoder.constantFalse;
-
-/** See `Decoder.constantNull` */
-export const constantNull: () => Decoder<null> = Decoder.constantNull;
+export function constant(value: true): Decoder<true>;
+export function constant(value: false): Decoder<false>;
+export function constant<A>(value: A): Decoder<A>;
+export function constant(value: any): Decoder<any> {
+  return Decoder.constant(value);
+}
 
 /** See `Decoder.object` */
 export function object<A>(decoders: DecoderObject<A>): Decoder<A> {

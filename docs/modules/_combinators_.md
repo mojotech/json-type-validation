@@ -10,10 +10,6 @@
 
 * [anyJson](_combinators_.md#anyjson)
 * [array](_combinators_.md#array)
-* [constant](_combinators_.md#constant)
-* [constantFalse](_combinators_.md#constantfalse)
-* [constantNull](_combinators_.md#constantnull)
-* [constantTrue](_combinators_.md#constanttrue)
 * [dict](_combinators_.md#dict)
 * [fail](_combinators_.md#fail)
 * [lazy](_combinators_.md#lazy)
@@ -27,6 +23,7 @@
 ### Functions
 
 * [boolean](_combinators_.md#boolean)
+* [constant](_combinators_.md#constant)
 * [number](_combinators_.md#number)
 * [object](_combinators_.md#object)
 * [string](_combinators_.md#string)
@@ -93,125 +90,6 @@ See `Decoder.array`
 
 
 **Returns:** [Decoder](../classes/_decoder_.decoder.md)`A`[]
-
-
-
-
-
-
-___
-
-<a id="constant"></a>
-
-###  constant
-
-**●  constant**:  *`function`*  =  Decoder.constant
-
-
-
-
-See `Decoder.constant`
-
-#### Type declaration
-►A(value: *`A`*): [Decoder](../classes/_decoder_.decoder.md)`A`
-
-
-
-**Type parameters:**
-
-#### A 
-**Parameters:**
-
-| Param | Type | Description |
-| ------ | ------ | ------ |
-| value | `A`   |  - |
-
-
-
-
-
-**Returns:** [Decoder](../classes/_decoder_.decoder.md)`A`
-
-
-
-
-
-
-___
-
-<a id="constantfalse"></a>
-
-###  constantFalse
-
-**●  constantFalse**:  *`function`*  =  Decoder.constantFalse
-
-
-
-
-See `Decoder.constantFalse`
-
-#### Type declaration
-►(): [Decoder](../classes/_decoder_.decoder.md)`false`
-
-
-
-
-
-**Returns:** [Decoder](../classes/_decoder_.decoder.md)`false`
-
-
-
-
-
-
-___
-
-<a id="constantnull"></a>
-
-###  constantNull
-
-**●  constantNull**:  *`function`*  =  Decoder.constantNull
-
-
-
-
-See `Decoder.constantNull`
-
-#### Type declaration
-►(): [Decoder](../classes/_decoder_.decoder.md)`null`
-
-
-
-
-
-**Returns:** [Decoder](../classes/_decoder_.decoder.md)`null`
-
-
-
-
-
-
-___
-
-<a id="constanttrue"></a>
-
-###  constantTrue
-
-**●  constantTrue**:  *`function`*  =  Decoder.constantTrue
-
-
-
-
-See `Decoder.constantTrue`
-
-#### Type declaration
-►(): [Decoder](../classes/_decoder_.decoder.md)`true`
-
-
-
-
-
-**Returns:** [Decoder](../classes/_decoder_.decoder.md)`true`
 
 
 
@@ -547,6 +425,79 @@ See `Decoder.boolean`
 
 
 **Returns:** [Decoder](../classes/_decoder_.decoder.md)`boolean`
+
+
+
+
+
+___
+
+<a id="constant"></a>
+
+###  constant
+
+► **constant**(value: *`true`*): [Decoder](../classes/_decoder_.decoder.md)`true`
+
+► **constant**(value: *`false`*): [Decoder](../classes/_decoder_.decoder.md)`false`
+
+► **constant**A(value: *`A`*): [Decoder](../classes/_decoder_.decoder.md)`A`
+
+
+
+
+
+
+See `Decoder.constant`
+
+
+**Parameters:**
+
+| Param | Type | Description |
+| ------ | ------ | ------ |
+| value | `true`   |  - |
+
+
+
+
+
+**Returns:** [Decoder](../classes/_decoder_.decoder.md)`true`
+
+
+
+
+
+
+**Parameters:**
+
+| Param | Type | Description |
+| ------ | ------ | ------ |
+| value | `false`   |  - |
+
+
+
+
+
+**Returns:** [Decoder](../classes/_decoder_.decoder.md)`false`
+
+
+
+
+
+
+**Type parameters:**
+
+#### A 
+**Parameters:**
+
+| Param | Type | Description |
+| ------ | ------ | ------ |
+| value | `A`   |  - |
+
+
+
+
+
+**Returns:** [Decoder](../classes/_decoder_.decoder.md)`A`
 
 
 
