@@ -76,9 +76,9 @@ report success or failure. When some json input fails validation the decoder
 clearly shows how the data was malformed.
 
 ```typescript
-const lyle: Pet = petDecoder.runWithException(pet1)
+const lyle: Pet = petDecoder.runWithException(croc)
 
-const bullwinkle: Pet = petDecoder.runWithException(pet2)
+const bullwinkle: Pet = petDecoder.runWithException(moose)
 // Throws the exception:
 // `Input: {"name":"Bullwinkle","age":59}
 //  Failed at input: the key 'species' is required but was not present`
