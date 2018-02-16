@@ -33,9 +33,6 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:prod": "npm run lint && npm run test -- --coverage --no-cache",
-    "deploy-docs": "ts-node tools/gh-pages-publish",
-    "report-coverage": "cat ./coverage/lcov.info | coveralls",
-    "commit": "git-cz",
     "typecheck": "tsc --lib es2015 --noEmit --strict test/**.ts",
     "typecheck:watch": "tsc -w --lib es2015 --noEmit --strict test/**.ts"
   },
