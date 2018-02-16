@@ -72,7 +72,6 @@
     "jest": "^22.0.2",
     "prettier": "^1.4.4",
     "prompt": "^1.0.0",
-    "replace-in-file": "^3.0.0-beta.2",
     "rimraf": "^2.6.1",
     "rollup": "^0.53.0",
     "rollup-plugin-commonjs": "^8.0.2",
