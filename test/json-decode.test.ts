@@ -30,7 +30,7 @@ describe('string', () => {
   it('fails when given a number', () => {
     expect(decoder.run(1)).toMatchObject({
       ok: false,
-      error: {at: 'input', message: 'expected a string, got 1'}
+      error: {at: 'input', message: 'expected a string, got a number'}
     });
   });
 
@@ -44,7 +44,7 @@ describe('string', () => {
   it('fails when given a boolean', () => {
     expect(decoder.run(true)).toMatchObject({
       ok: false,
-      error: {at: 'input', message: 'expected a string, got true'}
+      error: {at: 'input', message: 'expected a string, got a boolean'}
     });
   });
 });
@@ -59,14 +59,14 @@ describe('number', () => {
   it('fails when given a string', () => {
     expect(decoder.run('hey')).toMatchObject({
       ok: false,
-      error: {at: 'input', message: 'expected a number, got "hey"'}
+      error: {at: 'input', message: 'expected a number, got a string'}
     });
   });
 
   it('fails when given boolean', () => {
     expect(decoder.run(true)).toMatchObject({
       ok: false,
-      error: {at: 'input', message: 'expected a number, got true'}
+      error: {at: 'input', message: 'expected a number, got a boolean'}
     });
   });
 });
@@ -81,14 +81,14 @@ describe('boolean', () => {
   it('fails when given a string', () => {
     expect(decoder.run('hey')).toMatchObject({
       ok: false,
-      error: {at: 'input', message: 'expected a boolean, got "hey"'}
+      error: {at: 'input', message: 'expected a boolean, got a string'}
     });
   });
 
   it('fails when given a number', () => {
     expect(decoder.run(1)).toMatchObject({
       ok: false,
-      error: {at: 'input', message: 'expected a boolean, got 1'}
+      error: {at: 'input', message: 'expected a boolean, got a number'}
     });
   });
 });
@@ -173,7 +173,7 @@ describe('object', () => {
 
       expect(decoder.run('true')).toMatchObject({
         ok: false,
-        error: {at: 'input', message: 'expected an object, got "true"'}
+        error: {at: 'input', message: 'expected an object, got a string'}
       });
     });
 
@@ -182,7 +182,7 @@ describe('object', () => {
 
       expect(decoder.run([])).toMatchObject({
         ok: false,
-        error: {at: 'input', message: 'expected an object, got []'}
+        error: {at: 'input', message: 'expected an object, got an array'}
       });
     });
 
@@ -200,7 +200,7 @@ describe('object', () => {
 
       expect(decoder.run({name: 5})).toMatchObject({
         ok: false,
-        error: {at: 'input.name', message: 'expected a string, got 5'}
+        error: {at: 'input.name', message: 'expected a string, got a number'}
       });
     });
 
@@ -216,7 +216,7 @@ describe('object', () => {
       const error = decoder.run({hello: {hey: {'Howdy!': {}}}});
       expect(error).toMatchObject({
         ok: false,
-        error: {at: 'input.hello.hey.Howdy!', message: 'expected a string, got {}'}
+        error: {at: 'input.hello.hey.Howdy!', message: 'expected a string, got an object'}
       });
     });
   });
@@ -264,7 +264,7 @@ describe('array', () => {
   it('fails when given something other than a array', () => {
     expect(decoder.run('oops')).toMatchObject({
       ok: false,
-      error: {at: 'input', message: 'expected an array, got "oops"'}
+      error: {at: 'input', message: 'expected an array, got a string'}
     });
   });
 
@@ -272,7 +272,7 @@ describe('array', () => {
     it('fails when the elements are of the wrong type', () => {
       expect(decoder.run(['dang'])).toMatchObject({
         ok: false,
-        error: {at: 'input[0]', message: 'expected a number, got "dang"'}
+        error: {at: 'input[0]', message: 'expected a number, got a string'}
       });
     });
 
@@ -281,7 +281,7 @@ describe('array', () => {
 
       expect(nestedDecoder.run([[], [], [[1, 2, 3, false]]])).toMatchObject({
         ok: false,
-        error: {at: 'input[2][0][3]', message: 'expected a number, got false'}
+        error: {at: 'input[2][0][3]', message: 'expected a number, got a boolean'}
       });
     });
   });
@@ -302,21 +302,21 @@ describe('dict', () => {
     it('fails if a value cannot be decoded', () => {
       expect(decoder.run({oh: 'no'})).toMatchObject({
         ok: false,
-        error: {at: 'input.oh', message: 'expected a number, got "no"'}
+        error: {at: 'input.oh', message: 'expected a number, got a string'}
       });
     });
 
     it('fails if given an array', () => {
       expect(decoder.run([])).toMatchObject({
         ok: false,
-        error: {at: 'input', message: 'expected an object, got []'}
+        error: {at: 'input', message: 'expected an object, got an array'}
       });
     });
 
     it('fails if given a primitive', () => {
       expect(decoder.run(5)).toMatchObject({
         ok: false,
-        error: {at: 'input', message: 'expected an object, got 5'}
+        error: {at: 'input', message: 'expected an object, got a number'}
       });
     });
   });
@@ -369,7 +369,7 @@ describe('optional', () => {
     it('fails when the value is invalid', () => {
       expect(decoder.run(false)).toMatchObject({
         ok: false,
-        error: {at: 'input', message: 'expected a number, got false'}
+        error: {at: 'input', message: 'expected a number, got a boolean'}
       });
     });
   });
@@ -397,7 +397,7 @@ describe('optional', () => {
       const error = decoder.run({id: 3, isDog: 'supdog'});
       expect(error).toMatchObject({
         ok: false,
-        error: {at: 'input.isDog', message: 'expected a boolean, got "supdog"'}
+        error: {at: 'input.isDog', message: 'expected a boolean, got a string'}
       });
     });
   });
@@ -427,7 +427,7 @@ describe('oneOf', () => {
         at: 'input',
         message:
           'expected a value matching one of the decoders, got the errors ' +
-          '["at error: expected a string, got []", "at error: expected a number, got []"]'
+          '["at error: expected a string, got an array", "at error: expected a number, got an array"]'
       }
     });
   });
@@ -443,7 +443,7 @@ describe('oneOf', () => {
         at: 'input[0]',
         message:
           'expected a value matching one of the decoders, got the errors ' +
-          '["at error[1].a.b: expected a number, got true", ' +
+          '["at error[1].a.b: expected a number, got a boolean", ' +
           '"at error[1].a.x: path does not exist"]'
       }
     });
@@ -487,7 +487,7 @@ describe('union', () => {
         at: 'input',
         message:
           'expected a value matching one of the decoders, got the errors ' +
-          '["at error.kind: expected "a", got "b"", "at error.value: expected a boolean, got 12"]'
+          '["at error.kind: expected "a", got "b"", "at error.value: expected a boolean, got a number"]'
       }
     });
   });
@@ -542,7 +542,7 @@ describe('valueAt', () => {
     it('fails when the decoder fails at the end of the path', () => {
       expect(decoder.run({a: ['a', {b: 12}]})).toMatchObject({
         ok: false,
-        error: {at: 'input.a[1].b', message: 'expected a string, got 12'}
+        error: {at: 'input.a[1].b', message: 'expected a string, got a number'}
       });
     });
   });
@@ -569,11 +569,11 @@ describe('valueAt', () => {
 
       expect(decoder.run('abc')).toMatchObject({
         ok: false,
-        error: {at: 'input.a', message: 'expected an object, got "abc"'}
+        error: {at: 'input.a', message: 'expected an object, got a string'}
       });
       expect(decoder.run(true)).toMatchObject({
         ok: false,
-        error: {at: 'input.a', message: 'expected an object, got true'}
+        error: {at: 'input.a', message: 'expected an object, got a boolean'}
       });
     });
 
@@ -583,7 +583,7 @@ describe('valueAt', () => {
       const error = decoder.run({a: {b: 1}});
       expect(error).toMatchObject({
         ok: false,
-        error: {at: 'input.a.b.c', message: 'expected an object, got 1'}
+        error: {at: 'input.a.b.c', message: 'expected an object, got a number'}
       });
     });
 
@@ -593,7 +593,7 @@ describe('valueAt', () => {
       const error = decoder.run([[false]]);
       expect(error).toMatchObject({
         ok: false,
-        error: {at: 'input[0][0][1]', message: 'expected an array, got false'}
+        error: {at: 'input[0][0][1]', message: 'expected an array, got a boolean'}
       });
     });
   });
@@ -638,7 +638,7 @@ describe('lazy', () => {
     it('does not alter the error message', () => {
       expect(decoder.run(5)).toMatchObject({
         ok: false,
-        error: {at: 'input', message: 'expected a string, got 5'}
+        error: {at: 'input', message: 'expected a string, got a number'}
       });
     });
   });
@@ -668,7 +668,7 @@ describe('lazy', () => {
 
       expect(decoder.run(badTree)).toMatchObject({
         ok: false,
-        error: {at: 'input.replies[0].replies[0]', message: 'expected an object, got "hello"'}
+        error: {at: 'input.replies[0].replies[0]', message: 'expected an object, got a string'}
       });
     });
   });
@@ -686,7 +686,7 @@ describe('runPromise', () => {
       kind: 'DecoderError',
       input: 42,
       at: 'input',
-      message: 'expected a boolean, got 42'
+      message: 'expected a boolean, got a number'
     });
   });
 
@@ -704,7 +704,7 @@ describe('runWithException', () => {
 
   it('throws an exception when the decoder fails', () => {
     expect(() => decoder.runWithException(42)).toThrowError(
-      'Input: 42\nFailed at input: expected a boolean, got 42'
+      'Input: 42\nFailed at input: expected a boolean, got a number'
     );
   });
 });
@@ -763,7 +763,7 @@ describe('andThen', () => {
       const json = {version: 3, a: 1};
       expect(decoder.run(json)).toMatchObject({
         ok: false,
-        error: {at: 'input.a', message: 'expected a boolean, got 1'}
+        error: {at: 'input.a', message: 'expected a boolean, got a number'}
       });
     });
   });
