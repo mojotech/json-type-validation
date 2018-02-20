@@ -386,15 +386,19 @@ Note that `constant('string to match')` returns a `Decoder<string>` which fails 
 
 Providing the type parameter is only necessary for type-literal strings and numbers, as detailed by this table:
 
-     | Decoder                      | Type              |
-     | ---------------------------- | ----------------- |
-     | constant(true)               | Decoder<true>     |
-     | constant(false)              | Decoder<false>    |
-     | constant(null)               | Decoder<null>     |
-     | constant('alaska')           | Decoder<string>   |
-     | constant<'alaska'>('alaska') | Decoder<'alaska'> |
-     | constant(50)                 | Decoder<number>   |
-     | constant<50>(50)             | Decoder<50>       |
+     | Decoder                      | Type                 |
+     | ---------------------------- | ---------------------|
+     | constant(true)               | Decoder<true>        |
+     | constant(false)              | Decoder<false>       |
+     | constant(null)               | Decoder<null>        |
+     | constant('alaska')           | Decoder<string>      |
+     | constant<'alaska'>('alaska') | Decoder<'alaska'>    |
+     | constant(50)                 | Decoder<number>      |
+     | constant<50>(50)             | Decoder<50>          |
+     | constant([1,2,3])            | Decoder<number[]>    |
+     | constant<[1,2,3]>([1,2,3])   | Decoder<[1,2,3]>     |
+     | constant({x: 't'})           | Decoder<{x: string}> |
+     | constant<{x: 't'}>({x: 't'}) | Decoder<{x: 't'}>    |
 
 One place where this happens is when a type-literal is in an interface:
 
