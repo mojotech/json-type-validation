@@ -56,8 +56,30 @@ const isJsonArray = (json: any): boolean => json instanceof Array;
 const isJsonObject = (json: any): boolean =>
   typeof json === 'object' && json !== null && !isJsonArray(json);
 
-const expectedGot = (expected: string, got: any) =>
-  `expected ${expected}, got ${JSON.stringify(got)}`;
+const typeString = (json: any): string => {
+  switch (typeof json) {
+    case 'string':
+      return 'a string';
+    case 'number':
+      return 'a number';
+    case 'boolean':
+      return 'a boolean';
+    case 'undefined':
+      return 'undefined';
+    case 'object':
+      if (json instanceof Array) {
+        return 'an array';
+      } else if (json === null) {
+        return 'null';
+      } else {
+        return 'an object';
+      }
+    default:
+      return JSON.stringify(json);
+  }
+};
+
+const expectedGot = (expected: string, got: any) => `expected ${expected}, got ${typeString(got)}`;
 
 const printPath = (paths: (string | number)[]): string =>
   paths.map(path => (typeof path === 'string' ? `.${path}` : `[${path}]`)).join('');
@@ -214,7 +236,7 @@ export class Decoder<A> {
       (json: any) =>
         json === value
           ? Result.ok(value)
-          : Result.err({message: expectedGot(JSON.stringify(value), json)})
+          : Result.err({message: `expected ${JSON.stringify(value)}, got ${JSON.stringify(json)}`})
     );
   }
 
