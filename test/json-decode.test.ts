@@ -146,6 +146,28 @@ describe('constant', () => {
 
     expect(decoder.run({x: null})).toEqual({ok: true, result: {x: null}});
   });
+
+  it('can decode a constant array', () => {
+    type A = [1, 2, 3];
+    const decoder: Decoder<A> = constant<A>([1, 2, 3]);
+
+    expect(decoder.run([1, 2, 3])).toEqual({ok: true, result: [1, 2, 3]});
+    expect(decoder.run([1, 2, 3, 4])).toMatchObject({
+      ok: false,
+      error: {at: 'input', message: 'expected [1,2,3], got [1,2,3,4]'}
+    });
+  });
+
+  it('can decode a constant object', () => {
+    type O = {a: true; b: 12};
+    const decoder: Decoder<O> = constant<O>({a: true, b: 12});
+
+    expect(decoder.run({a: true, b: 12})).toEqual({ok: true, result: {a: true, b: 12}});
+    expect(decoder.run({a: true, b: 7})).toMatchObject({
+      ok: false,
+      error: {at: 'input', message: 'expected {"a":true,"b":12}, got {"a":true,"b":7}'}
+    });
+  });
 });
 
 describe('object', () => {
