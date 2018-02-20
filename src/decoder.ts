@@ -1,4 +1,5 @@
 import * as Result from './result';
+const isEqual = require('lodash/isEqual'); // this syntax avoids TS1192
 
 /**
  * Information describing how json data failed to match a decoder.
@@ -177,15 +178,19 @@ export class Decoder<A> {
    * and numbers, as detailed by this table:
    *
    * ```
-   *  | Decoder                      | Type              |
-   *  | ---------------------------- | ----------------- |
-   *  | constant(true)               | Decoder<true>     |
-   *  | constant(false)              | Decoder<false>    |
-   *  | constant(null)               | Decoder<null>     |
-   *  | constant('alaska')           | Decoder<string>   |
-   *  | constant<'alaska'>('alaska') | Decoder<'alaska'> |
-   *  | constant(50)                 | Decoder<number>   |
-   *  | constant<50>(50)             | Decoder<50>       |
+   *  | Decoder                      | Type                 |
+   *  | ---------------------------- | ---------------------|
+   *  | constant(true)               | Decoder<true>        |
+   *  | constant(false)              | Decoder<false>       |
+   *  | constant(null)               | Decoder<null>        |
+   *  | constant('alaska')           | Decoder<string>      |
+   *  | constant<'alaska'>('alaska') | Decoder<'alaska'>    |
+   *  | constant(50)                 | Decoder<number>      |
+   *  | constant<50>(50)             | Decoder<50>          |
+   *  | constant([1,2,3])            | Decoder<number[]>    |
+   *  | constant<[1,2,3]>([1,2,3])   | Decoder<[1,2,3]>     |
+   *  | constant({x: 't'})           | Decoder<{x: string}> |
+   *  | constant<{x: 't'}>({x: 't'}) | Decoder<{x: 't'}>    |
    * ```
    *
    *
@@ -234,7 +239,7 @@ export class Decoder<A> {
   static constant(value: any): Decoder<any> {
     return new Decoder(
       (json: any) =>
-        json === value
+        isEqual(json, value)
           ? Result.ok(value)
           : Result.err({message: `expected ${JSON.stringify(value)}, got ${JSON.stringify(json)}`})
     );
