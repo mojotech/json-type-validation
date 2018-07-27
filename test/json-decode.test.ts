@@ -243,28 +243,6 @@ describe('object', () => {
     });
   });
 
-  it('ignores inharited fields in the decoder object', () => {
-    function decoderObject() {
-      return;
-    }
-
-    decoderObject.prototype.addedField = number();
-
-    // this line raises the typescript error TS7009, because `new` should only
-    // be used on classes.
-    let decoderFields = new decoderObject();
-    decoderFields.a = boolean();
-    decoderFields.b = string();
-
-    const decoder = object(decoderFields);
-
-    expect(decoderFields.addedField).toBeDefined();
-    expect(decoder.run({a: true, b: 'hats', addedField: 5})).toEqual({
-      ok: true,
-      result: {a: true, b: 'hats'}
-    });
-  });
-
   it('ignores optional fields that decode to undefined', () => {
     const decoder = object({
       a: number(),
@@ -351,27 +329,6 @@ describe('dict', () => {
         ok: true,
         result: {hey: 'there!', yo: 'dude!'}
       });
-    });
-  });
-
-  describe('ignores inharited fields in the json object', () => {
-    it('', () => {
-      function jsonObject() {
-        return;
-      }
-
-      jsonObject.prototype.addedField = 3;
-
-      // this line raises the typescript error TS7009, because `new` should
-      // only be used on classes.
-      let json = new jsonObject();
-      json.a = 1;
-      json.b = 2;
-
-      const decoder = dict(number());
-
-      expect(json.addedField).toBe(3);
-      expect(decoder.run(json)).toEqual({ok: true, result: {a: 1, b: 2}});
     });
   });
 });
