@@ -112,6 +112,20 @@ const prependAt = (newAt: string, {at, ...rest}: Partial<DecoderError>): Partial
  * things with a `Result` as with the decoder methods.
  */
 export class Decoder<A> {
+  /**
+   * The Decoder class constructor is kept private to separate the internal
+   * `decode` function from the external `run` function. The distinction
+   * between the two functions is that `decode` returns a
+   * `Partial<DecoderError>` on failure, which contains an unfinished error
+   * report. When `run` is called on a decoder, the relevant series of `decode`
+   * calls is made, and then on failure the resulting `Partial<DecoderError>`
+   * is turned into a `DecoderError` by filling in the missing informaiton.
+   *
+   * While hiding the constructor may seem restrictive, leveraging the
+   * provided decoder combinators and helper functions such as
+   * `andThen` and `map` should be enough to build specialized decoders as
+   * needed.
+   */
   private constructor(private decode: (json: any) => Result.Result<A, Partial<DecoderError>>) {}
 
   /**
