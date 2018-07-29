@@ -40,8 +40,15 @@ export type DecoderObject<A> = {[t in keyof A]: Decoder<A[t]>};
  * `any`, so when dealing with a decoder as a promise you may need to
  * distinguish between a `DecoderError` and an error string.
  */
-export const isDecoderError = (a: any): a is DecoderError =>
-  a.kind === 'DecoderError' && typeof a.at === 'string' && typeof a.message === 'string';
+export const isDecoderError = (a: any): a is DecoderError => {
+  const decoderErrorDecoder: Decoder<DecoderError> = Decoder.object({
+    kind: Decoder.constant<'DecoderError'>('DecoderError'),
+    input: Decoder.anyJson(),
+    at: Decoder.string(),
+    message: Decoder.string()
+  });
+  return Result.isOk(decoderErrorDecoder.run(a));
+}
 
 /**
  * `DecoderError` information as a formatted string.
