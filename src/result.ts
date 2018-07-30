@@ -106,6 +106,15 @@ export const map = <A, B, E>(f: (value: A) => B, r: Result<A, E>): Result<B, E> 
   r.ok === true ? ok<B>(f(r.result)) : r;
 
 /**
+ * Apply `f` to the result of two `Ok`s, or pass an error through. If both
+ * `Result`s are errors then the first one is returned.
+ */
+export const map2 = <A, B, C, E>(f: (av: A, bv: B) => C, ar: Result<A, E>, br: Result<B, E>): Result<C, E> =>
+  ar.ok === false ? ar :
+    br.ok === false ? br :
+      ok<C>(f(ar.result, br.result));
+
+/**
  * Apply `f` to the error of an `Err`, or pass the success through.
  */
 export const mapError = <V, A, B>(f: (error: A) => B, r: Result<V, A>): Result<V, B> =>

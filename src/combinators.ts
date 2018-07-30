@@ -55,6 +55,8 @@ export function union(ad: Decoder<any>, bd: Decoder<any>, ...ds: Decoder<any>[])
   return Decoder.oneOf(ad, bd, ...ds);
 }
 
+export const intersection = Decoder.intersection;
+
 /** See `Decoder.withDefault` */
 export const withDefault: <A>(defaultValue: A, decoder: Decoder<A>) => Decoder<A> =
   Decoder.withDefault;

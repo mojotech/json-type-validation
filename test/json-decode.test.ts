@@ -13,6 +13,7 @@ import {
   optional,
   oneOf,
   union,
+  intersection,
   withDefault,
   valueAt,
   succeed,
@@ -468,6 +469,47 @@ describe('union', () => {
           'expected a value matching one of the decoders, got the errors ' +
           '["at error.kind: expected "a", got "b"", "at error.value: expected a boolean, got a number"]'
       }
+    });
+  });
+});
+
+describe('intersection', () => {
+  it('uses two decoders to decode an extended interface', () => {
+    interface A {
+      a: number;
+    }
+
+    interface AB extends A {
+      b: string;
+    }
+
+    const aDecoder: Decoder<A> = object({a: number()});
+    const abDecoder: Decoder<AB> = intersection(aDecoder, object({b: string()}));
+
+    expect(abDecoder.run({a: 12, b: '!!!'})).toEqual({ok: true, result: {a: 12, b: '!!!'}});
+  });
+
+  it('can combine many decoders', () => {
+    interface UVWXYZ {
+      u: true;
+      v: string[];
+      w: boolean | null;
+      x: number;
+      y: string;
+      z: boolean;
+    }
+
+    const uvwxyzDecoder: Decoder<UVWXYZ> = intersection(
+      object({u: constant(true)}),
+      object({v: array(string())}),
+      object({w: union(boolean(), constant(null))}),
+      object({x: number()}),
+      object({y: string(), z: boolean()})
+    );
+
+    expect(uvwxyzDecoder.run({u: true, v: [], w: null, x: 4, y: 'y', z: false})).toEqual({
+      ok: true,
+      result: {u: true, v: [], w: null, x: 4, y: 'y', z: false}
     });
   });
 });

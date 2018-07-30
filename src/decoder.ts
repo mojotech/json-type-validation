@@ -440,6 +440,41 @@ export class Decoder<A> {
   }
 
   /**
+   * Combines 2-8 object decoders into a decoder for the intersection of all the objects.
+   *
+   * Example:
+   * ```
+   * interface Pet {
+   *   name: string;
+   *   maxLegs: number;
+   * }
+   *
+   * interface Cat extends Pet {
+   *   evil: boolean;
+   * }
+   *
+   * const petDecoder: Decoder<Pet> = object({name: string(), maxLegs: number()});
+   * const catDecoder: Decoder<Cat> = intersection(petDecoder, object({evil: boolean()}));
+   * ```
+   */
+  static intersection <A, B>(ad: Decoder<A>, bd: Decoder<B>): Decoder<A & B>; // prettier-ignore
+  static intersection <A, B, C>(ad: Decoder<A>, bd: Decoder<B>, cd: Decoder<C>): Decoder<A & B & C>; // prettier-ignore
+  static intersection <A, B, C, D>(ad: Decoder<A>, bd: Decoder<B>, cd: Decoder<C>, dd: Decoder<D>): Decoder<A & B & C & D>; // prettier-ignore
+  static intersection <A, B, C, D, E>(ad: Decoder<A>, bd: Decoder<B>, cd: Decoder<C>, dd: Decoder<D>, ed: Decoder<E>): Decoder<A & B & C & D & E>; // prettier-ignore
+  static intersection <A, B, C, D, E, F>(ad: Decoder<A>, bd: Decoder<B>, cd: Decoder<C>, dd: Decoder<D>, ed: Decoder<E>, fd: Decoder<F>): Decoder<A & B & C & D & E & F>; // prettier-ignore
+  static intersection <A, B, C, D, E, F, G>(ad: Decoder<A>, bd: Decoder<B>, cd: Decoder<C>, dd: Decoder<D>, ed: Decoder<E>, fd: Decoder<F>, gd: Decoder<G>): Decoder<A & B & C & D & E & F & G>; // prettier-ignore
+  static intersection <A, B, C, D, E, F, G, H>(ad: Decoder<A>, bd: Decoder<B>, cd: Decoder<C>, dd: Decoder<D>, ed: Decoder<E>, fd: Decoder<F>, gd: Decoder<G>, hd: Decoder<H>): Decoder<A & B & C & D & E & F & G & H>; // prettier-ignore
+  static intersection(ad: Decoder<any>, bd: Decoder<any>, ...ds: Decoder<any>[]): Decoder<any> {
+    return new Decoder((json: any) =>
+      [ad, bd, ...ds].reduce(
+        (acc: Result.Result<any, Partial<DecoderError>>, decoder) =>
+          Result.map2(Object.assign, acc, decoder.decode(json)),
+        Result.ok({})
+      )
+    );
+  }
+
+  /**
    * Decoder that always succeeds with either the decoded value, or a fallback
    * default value.
    */

@@ -15,6 +15,7 @@ export {
   optional,
   oneOf,
   union,
+  intersection,
   withDefault,
   valueAt,
   succeed,
