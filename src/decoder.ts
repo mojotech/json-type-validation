@@ -311,20 +311,16 @@ export class Decoder<A> {
    */
   static array = <A>(decoder: Decoder<A>): Decoder<A[]> =>
     new Decoder<A[]>(json => {
-      if (isJsonArray(json)) {
-        let arr: A[] = [];
-        for (let i = 0; i < json.length; i++) {
-          const r = decoder.decode(json[i]);
-          if (r.ok === true) {
-            arr.push(r.result);
-          } else {
-            return Result.err(prependAt(`[${i}]`, r.error));
-          }
-        }
-        return Result.ok(arr);
-      } else {
-        return Result.err({message: expectedGot('an array', json)});
-      }
+      const decodeValue = (v: any, i: number): Result.Result<A, Partial<DecoderError>> =>
+        Result.mapError(err => prependAt(`[${i}]`, err), decoder.decode(v));
+
+      return isJsonArray(json)
+        ? json.reduce(
+            (acc: Result.Result<A[], Partial<DecoderError>>, v: any, i: number) =>
+              Result.map2((arr, result) => [...arr, result], acc, decodeValue(v, i)),
+            Result.ok([])
+          )
+        : Result.err({message: expectedGot('an array', json)});
     });
 
   /**
