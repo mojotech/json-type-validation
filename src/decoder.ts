@@ -43,12 +43,6 @@ export type DecoderObject<A> = {[t in keyof A]: Decoder<A[t]>};
 export const isDecoderError = (a: any): a is DecoderError =>
   a.kind === 'DecoderError' && typeof a.at === 'string' && typeof a.message === 'string';
 
-/**
- * `DecoderError` information as a formatted string.
- */
-export const decoderErrorString = (error: DecoderError): string =>
-  `Input: ${JSON.stringify(error.input)}\nFailed at ${error.at}: ${error.message}`;
-
 /*
  * Helpers
  */
@@ -597,8 +591,7 @@ export class Decoder<A> {
    * Run the decoder and return the value on success, or throw an exception
    * with a formatted error string.
    */
-  runWithException = (json: any): A =>
-    Result.withException(Result.mapError(decoderErrorString, this.run(json)));
+  runWithException = (json: any): A => Result.withException(this.run(json));
 
   /**
    * Construct a new decoder that applies a transformation to the decoded

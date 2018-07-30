@@ -1,7 +1,7 @@
 import * as Result from './result';
 export {Result};
 
-export {Decoder, DecoderError, isDecoderError, decoderErrorString, DecoderObject} from './decoder';
+export {Decoder, DecoderError, isDecoderError, DecoderObject} from './decoder';
 
 export {
   string,

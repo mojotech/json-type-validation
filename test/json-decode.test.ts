@@ -682,9 +682,20 @@ describe('runWithException', () => {
   });
 
   it('throws an exception when the decoder fails', () => {
-    expect(() => decoder.runWithException(42)).toThrowError(
-      'Input: 42\nFailed at input: expected a boolean, got a number'
-    );
+    let thrownError: any;
+
+    try {
+      decoder.runWithException(42);
+    } catch (e) {
+      thrownError = e;
+    }
+
+    expect(thrownError).toEqual({
+      kind: 'DecoderError',
+      input: 42,
+      at: 'input',
+      message: 'expected a boolean, got a number'
+    });
   });
 });
 
