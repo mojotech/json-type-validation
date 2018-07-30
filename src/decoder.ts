@@ -14,6 +14,20 @@ export interface DecoderError {
 }
 
 /**
+ * Alias for the result of the `Decoder.run` method. On success returns `Ok`
+ * with the decoded value of type `A`, on failure returns `Err` containing a
+ * `DecoderError`.
+ */
+type RunResult<A> = Result.Result<A, DecoderError>;
+
+/**
+ * Alias for the result of the internal `Decoder.decode` method. Since `decode`
+ * is a private function it returns a partial decoder error on failure, which
+ * will be completed and polished when handed off to the `run` method.
+ */
+type DecodeResult<A> = Result.Result<A, Partial<DecoderError>>;
+
+/**
  * Defines a mapped type over an interface `A`. `DecoderObject<A>` is an
  * interface that has all the keys or `A`, but each key's property type is
  * mapped to a decoder for that type. This type is used when creating decoders
@@ -120,7 +134,7 @@ export class Decoder<A> {
    * `andThen` and `map` should be enough to build specialized decoders as
    * needed.
    */
-  private constructor(private decode: (json: any) => Result.Result<A, Partial<DecoderError>>) {}
+  private constructor(private decode: (json: any) => DecodeResult<A>) {}
 
   /**
    * Decoder primitive that validates strings, and fails on all other input.
@@ -311,12 +325,12 @@ export class Decoder<A> {
    */
   static array = <A>(decoder: Decoder<A>): Decoder<A[]> =>
     new Decoder<A[]>(json => {
-      const decodeValue = (v: any, i: number): Result.Result<A, Partial<DecoderError>> =>
+      const decodeValue = (v: any, i: number): DecodeResult<A> =>
         Result.mapError(err => prependAt(`[${i}]`, err), decoder.decode(v));
 
       return isJsonArray(json)
         ? json.reduce(
-            (acc: Result.Result<A[], Partial<DecoderError>>, v: any, i: number) =>
+            (acc: DecodeResult<A[]>, v: any, i: number) =>
               Result.map2((arr, result) => [...arr, result], acc, decodeValue(v, i)),
             Result.ok([])
           )
@@ -602,7 +616,7 @@ export class Decoder<A> {
    * // }
    * ```
    */
-  run = (json: any): Result.Result<A, DecoderError> =>
+  run = (json: any): RunResult<A> =>
     Result.mapError(
       error => ({
         kind: 'DecoderError' as 'DecoderError',
