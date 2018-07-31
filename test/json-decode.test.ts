@@ -298,7 +298,7 @@ describe('array', () => {
 
   it('decodes any array when the array members decoder is not specified', () => {
     const validNumbersDecoder = array()
-      .map((arr: any[]) => arr.map(number().run))
+      .map((arr: unknown[]) => arr.map(number().run))
       .map(Result.successes);
 
     expect(validNumbersDecoder.run([1, true, 2, 3, 'five', 4, []])).toEqual({
@@ -723,7 +723,7 @@ describe('lazy', () => {
 });
 
 describe('runPromise', () => {
-  const promise = (json: any): Promise<boolean> => boolean().runPromise(json);
+  const promise = (json: unknown): Promise<boolean> => boolean().runPromise(json);
 
   it('resolves the promise when the decoder succeeds', () => {
     return expect(promise(true)).resolves.toBe(true);
@@ -906,8 +906,8 @@ describe('Result', () => {
   });
 
   it('can return successes from an array of decoded values', () => {
-    const json: any = [1, true, 2, 3, 'five', 4, []];
-    const jsonArray: any[] = Result.withDefault([], array(anyJson()).run(json));
+    const json: unknown = [1, true, 2, 3, 'five', 4, []];
+    const jsonArray: unknown[] = Result.withDefault([], array().run(json));
     const numbers: number[] = Result.successes(jsonArray.map(number().run));
 
     expect(numbers).toEqual([1, 2, 3, 4]);
