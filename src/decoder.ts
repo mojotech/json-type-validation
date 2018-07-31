@@ -194,6 +194,13 @@ export class Decoder<A> {
   static anyJson = (): Decoder<any> => new Decoder<any>((json: any) => Result.ok(json));
 
   /**
+   * Decoder identity function which always succeeds and types the result as
+   * `unknown`.
+   */
+  static unknownJson = (): Decoder<unknown> =>
+    new Decoder<unknown>((json: unknown) => Result.ok(json));
+
+  /**
    * Decoder primitive that only matches on exact values.
    *
    * Note that `constant('string to match')` returns a `Decoder<string>` which
