@@ -174,16 +174,6 @@ export class Decoder<A> {
 
   /**
    * Decoder identity function. Useful for incremental decoding.
-   *
-   * Example:
-   * ```
-   * const json: any = [1, true, 2, 3, 'five', 4, []];
-   * const jsonArray: any[] = Result.withDefault([], array(anyJson()).run(json));
-   * const numbers: number[] = Result.successes(jsonArray.map(number().run));
-   *
-   * numbers
-   * // => [1, 2, 3, 4]
-   * ```
    */
   static anyJson = (): Decoder<any> => new Decoder<any>((json: any) => Result.ok(json));
 
@@ -310,7 +300,9 @@ export class Decoder<A> {
 
   /**
    * Decoder for json arrays. Runs `decoder` on each array element, and succeeds
-   * if all elements are successfully decoded.
+   * if all elements are successfully decoded. If no `decoder` argument is
+   * provided then the outer array part of the json is validated but not the
+   * contents, typing the result as `any[]`.
    *
    * To decode a single value that is inside of an array see `valueAt`.
    *
@@ -321,21 +313,42 @@ export class Decoder<A> {
    *
    * array(array(boolean())).run([[true], [], [true, false, false]])
    * // => {ok: true, result: [[true], [], [true, false, false]]}
+   *
+   *
+   * const validNumbersDecoder = array()
+   *   .map((arr: any[]) => arr.map(number().run))
+   *   .map(Result.successes)
+   *
+   * validNumbersDecoder.run([1, true, 2, 3, 'five', 4, []])
+   * // {ok: true, result: [1, 2, 3, 4]}
+   *
+   * validNumbersDecoder.run([false, 'hi', {}])
+   * // {ok: true, result: []}
+   *
+   * validNumbersDecoder.run(false)
+   * // {ok: false, error: {..., message: "expected an array, got a boolean"}}
    * ```
    */
-  static array = <A>(decoder: Decoder<A>): Decoder<A[]> =>
-    new Decoder<A[]>(json => {
-      const decodeValue = (v: any, i: number): DecodeResult<A> =>
-        Result.mapError(err => prependAt(`[${i}]`, err), decoder.decode(v));
+  static array(): Decoder<any[]>;
+  static array<A>(decoder: Decoder<A>): Decoder<A[]>;
+  static array<A>(decoder?: Decoder<A>) {
+    return new Decoder(json => {
+      if (isJsonArray(json) && decoder) {
+        const decodeValue = (v: any, i: number): DecodeResult<A> =>
+          Result.mapError(err => prependAt(`[${i}]`, err), decoder.decode(v));
 
-      return isJsonArray(json)
-        ? json.reduce(
-            (acc: DecodeResult<A[]>, v: any, i: number) =>
-              Result.map2((arr, result) => [...arr, result], acc, decodeValue(v, i)),
-            Result.ok([])
-          )
-        : Result.err({message: expectedGot('an array', json)});
+        return json.reduce(
+          (acc: DecodeResult<A[]>, v: any, i: number) =>
+            Result.map2((arr, result) => [...arr, result], acc, decodeValue(v, i)),
+          Result.ok([])
+        );
+      } else if (isJsonArray(json)) {
+        return Result.ok(json);
+      } else {
+        return Result.err({message: expectedGot('an array', json)});
+      }
     });
+  }
 
   /**
    * Decoder for json objects where the keys are unknown strings, but the values

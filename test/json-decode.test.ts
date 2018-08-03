@@ -286,6 +286,24 @@ describe('array', () => {
       });
     });
   });
+
+  it('decodes any array when the array members decoder is not specified', () => {
+    const validNumbersDecoder = array()
+      .map((arr: any[]) => arr.map(number().run))
+      .map(Result.successes);
+
+    expect(validNumbersDecoder.run([1, true, 2, 3, 'five', 4, []])).toEqual({
+      ok: true,
+      result: [1, 2, 3, 4]
+    });
+
+    expect(validNumbersDecoder.run([false, 'hi', {}])).toEqual({ok: true, result: []});
+
+    expect(validNumbersDecoder.run(false)).toMatchObject({
+      ok: false,
+      error: {message: 'expected an array, got a boolean'}
+    });
+  });
 });
 
 describe('dict', () => {
