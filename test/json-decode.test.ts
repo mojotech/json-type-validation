@@ -253,6 +253,15 @@ describe('object', () => {
     expect(decoder.run({a: 12, b: 'hats'})).toEqual({ok: true, result: {a: 12, b: 'hats'}});
     expect(decoder.run({a: 12})).toEqual({ok: true, result: {a: 12}});
   });
+
+  it('decodes any object when the object shape is not specified', () => {
+    const objectKeysDecoder: Decoder<string[]> = object().map(Object.keys);
+
+    expect(objectKeysDecoder.run({n: 1, i: [], c: {}, e: 'e'})).toEqual({
+      ok: true,
+      result: ['n', 'i', 'c', 'e']
+    });
+  });
 });
 
 describe('array', () => {

@@ -259,7 +259,10 @@ export class Decoder<A> {
 
   /**
    * An higher-order decoder that runs decoders on specified fields of an object,
-   * and returns a new object with those fields.
+   * and returns a new object with those fields. If `object` is called with no
+   * arguments, then the outer object part of the json is validated but not the
+   * contents, typing the result as a dictionary where all keys have a value of
+   * type `any`.
    *
    * The `optional` and `constant` decoders are particularly useful for decoding
    * objects that match typescript interfaces.
@@ -270,11 +273,16 @@ export class Decoder<A> {
    * ```
    * object({x: number(), y: number()}).run({x: 5, y: 10})
    * // => {ok: true, result: {x: 5, y: 10}}
+   *
+   * object().map(Object.keys).run({n: 1, i: [], c: {}, e: 'e'})
+   * // => {ok: true, result: ['n', 'i', 'c', 'e']}
    * ```
    */
-  static object<A>(decoders: DecoderObject<A>): Decoder<A> {
-    return new Decoder<A>((json: any) => {
-      if (isJsonObject(json)) {
+  static object(): Decoder<{[key: string]: any}>;
+  static object<A>(decoders: DecoderObject<A>): Decoder<A>;
+  static object<A>(decoders?: DecoderObject<A>) {
+    return new Decoder((json: any) => {
+      if (isJsonObject(json) && decoders) {
         let obj: any = {};
         for (const key in decoders) {
           if (decoders.hasOwnProperty(key)) {
@@ -292,6 +300,8 @@ export class Decoder<A> {
           }
         }
         return Result.ok(obj);
+      } else if (isJsonObject(json)) {
+        return Result.ok(json);
       } else {
         return Result.err({message: expectedGot('an object', json)});
       }
