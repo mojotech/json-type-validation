@@ -18,7 +18,6 @@
 
 ### Functions
 
-* [decoderErrorString](_decoder_.md#decodererrorstring)
 * [isDecoderError](_decoder_.md#isdecodererror)
 
 ---
@@ -53,23 +52,6 @@ ___
 
 ## Functions
 
-<a id="decodererrorstring"></a>
-
-### `<Const>` decoderErrorString
-
-▸ **decoderErrorString**(error: *[DecoderError](../interfaces/_decoder_.decodererror.md)*): `string`
-
-`DecoderError` information as a formatted string.
-
-**Parameters:**
-
-| Param | Type |
-| ------ | ------ |
-| error | [DecoderError](../interfaces/_decoder_.decodererror.md) |
-
-**Returns:** `string`
-
-___
 <a id="isdecodererror"></a>
 
 ### `<Const>` isDecoderError

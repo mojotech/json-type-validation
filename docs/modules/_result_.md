@@ -21,6 +21,7 @@
 * [isErr](_result_.md#iserr)
 * [isOk](_result_.md#isok)
 * [map](_result_.md#map)
+* [map2](_result_.md#map2)
 * [mapError](_result_.md#maperror)
 * [ok](_result_.md#ok-1)
 * [successes](_result_.md#successes)
@@ -170,6 +171,31 @@ Apply `f` to the result of an `Ok`, or pass the error through.
 | r | [Result](_result_.md#result)<`A`, `E`> |
 
 **Returns:** [Result](_result_.md#result)<`B`, `E`>
+
+___
+<a id="map2"></a>
+
+### `<Const>` map2
+
+▸ **map2**A,B,C,E(f: *`function`*, ar: *[Result](_result_.md#result)<`A`, `E`>*, br: *[Result](_result_.md#result)<`B`, `E`>*): [Result](_result_.md#result)<`C`, `E`>
+
+Apply `f` to the result of two `Ok`s, or pass an error through. If both `Result`s are errors then the first one is returned.
+
+**Type parameters:**
+
+#### A 
+#### B 
+#### C 
+#### E 
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| f | `function` |
+| ar | [Result](_result_.md#result)<`A`, `E`> |
+| br | [Result](_result_.md#result)<`B`, `E`> |
+
+**Returns:** [Result](_result_.md#result)<`C`, `E`>
 
 ___
 <a id="maperror"></a>
