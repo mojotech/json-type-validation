@@ -1,4 +1,4 @@
-import {Decoder, string, number, boolean, object} from '../src/index';
+import {string, number, boolean, object} from '../src/index';
 
 describe('decode json as User interface', () => {
   interface User {
@@ -22,7 +22,7 @@ describe('decode json as User interface', () => {
     active: false
   };
 
-  const userDecoder: Decoder<User> = object({
+  const userDecoder = object<User>({
     firstname: string(),
     lastname: string(),
     age: number(),
