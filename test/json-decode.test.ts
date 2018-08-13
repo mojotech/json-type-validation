@@ -179,8 +179,18 @@ describe('object', () => {
     });
 
     it('can decode a nested object', () => {
-      const decoder = object({
-        payload: object({x: number(), y: number()}),
+      interface Point {
+        x: number;
+        y: number;
+      }
+
+      interface Location {
+        payload: Point;
+        error: false;
+      }
+
+      const decoder = object<Location>({
+        payload: object<Point>({x: number(), y: number()}),
         error: constant(false)
       });
       const json = {payload: {x: 5, y: 2}, error: false};

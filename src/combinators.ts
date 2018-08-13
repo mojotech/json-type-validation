@@ -1,4 +1,4 @@
-import {Decoder} from './decoder';
+import {Decoder, OptionalDecoder} from './decoder';
 
 /** See `Decoder.string` */
 export function string(): Decoder<string> {
@@ -36,7 +36,7 @@ export const array: <A>(decoder: Decoder<A>) => Decoder<A[]> = Decoder.array;
 export const dict: <A>(decoder: Decoder<A>) => Decoder<{[name: string]: A}> = Decoder.dict;
 
 /** See `Decoder.optional` */
-export const optional = Decoder.optional;
+export const optional = OptionalDecoder.optional;
 
 /** See `Decoder.oneOf` */
 export const oneOf: <A>(...decoders: Decoder<A>[]) => Decoder<A> = Decoder.oneOf;
