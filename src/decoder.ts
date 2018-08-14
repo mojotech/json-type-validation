@@ -618,10 +618,13 @@ export class Decoder<A> {
    * Chain together a sequence of decoders. The first decoder will run, and
    * then the function will determine what decoder to run second. If the result
    * of the first decoder succeeds then `f` will be applied to the decoded
-   * value. If it fails the error will propagate through. One use case for
-   * `andThen` is returning a custom error message.
+   * value. If it fails the error will propagate through.
    *
-   * Example:
+   * This is a very powerful method -- it can act as both the `map` and `where`
+   * methods, can improve error messages for edge cases, and can be used to
+   * make a decoder for custom types.
+   *
+   * Example of adding an error message:
    * ```
    * const versionDecoder = valueAt(['version'], number());
    * const infoDecoder3 = object({a: boolean()});
@@ -642,12 +645,21 @@ export class Decoder<A> {
    * // =>
    * // {
    * //   ok: false,
-   * //   error: {
-   * //     ...
-   * //     at: 'input',
-   * //     message: 'Unable to decode info, version 5 is not supported.'
-   * //   }
+   * //   error: {... message: 'Unable to decode info, version 5 is not supported.'}
    * // }
+   * ```
+   *
+   * Example of decoding a custom type:
+   * ```
+   * // nominal type for arrays with a length of at least one
+   * type NonEmptyArray<T> = T[] & { __nonEmptyArrayBrand__: void };
+   *
+   * const nonEmptyArrayDecoder = <T>(values: Decoder<T>): Decoder<NonEmptyArray<T>> =>
+   *   array(values).andThen(arr =>
+   *     arr.length > 0
+   *       ? succeed(createNonEmptyArray(arr))
+   *       : fail(`expected a non-empty array, got an empty array`)
+   *   );
    * ```
    */
   andThen = <B>(f: (value: A) => Decoder<B>): Decoder<B> =>

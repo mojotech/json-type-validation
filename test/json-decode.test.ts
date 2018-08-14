@@ -746,6 +746,29 @@ describe('andThen', () => {
       });
     });
   });
+
+  it('creates decoders for custom types', () => {
+    type NonEmptyArray<T> = T[] & {__nonEmptyArrayBrand__: void};
+    const createNonEmptyArray = <T>(arr: T[]): NonEmptyArray<T> => arr as NonEmptyArray<T>;
+
+    const nonEmptyArrayDecoder = <T>(values: Decoder<T>): Decoder<NonEmptyArray<T>> =>
+      array(values).andThen(
+        arr =>
+          arr.length > 0
+            ? succeed(createNonEmptyArray(arr))
+            : fail(`expected a non-empty array, got an empty array`)
+      );
+
+    expect(nonEmptyArrayDecoder(number()).run([1, 2, 3])).toEqual({
+      ok: true,
+      result: [1, 2, 3]
+    });
+
+    expect(nonEmptyArrayDecoder(number()).run([])).toMatchObject({
+      ok: false,
+      error: {message: 'expected a non-empty array, got an empty array'}
+    });
+  });
 });
 
 describe('Result', () => {
