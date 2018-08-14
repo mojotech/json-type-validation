@@ -666,4 +666,30 @@ export class Decoder<A> {
     new Decoder<B>((json: any) =>
       Result.andThen(value => f(value).decode(json), this.decode(json))
     );
+
+  /**
+   * Add constraints to a decoder _without_ changing the resulting type. The
+   * `test` argument is a predicate function which returns true for valid
+   * inputs. When `test` fails on an input, the decoder fails with the given
+   * `errorMessage`.
+   *
+   * ```
+   * const chars = (length: number): Decoder<string> =>
+   *   string().where(
+   *     (s: string) => s.length === length,
+   *     `expected a string of length ${length}`
+   *   );
+   *
+   * chars(5).run('12345')
+   * // => {ok: true, result: '12345'}
+   *
+   * chars(2).run('HELLO')
+   * // => {ok: false, error: {... message: 'expected a string of length 2'}}
+   *
+   * chars(12).run(true)
+   * // => {ok: false, error: {... message: 'expected a string, got a boolean'}}
+   * ```
+   */
+  where = (test: (value: A) => boolean, errorMessage: string): Decoder<A> =>
+    this.andThen((value: A) => (test(value) ? Decoder.succeed(value) : Decoder.fail(errorMessage)));
 }
