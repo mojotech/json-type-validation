@@ -33,6 +33,7 @@ Alternatively, the main decoder `run()` method returns an object of type `Result
 * [run](_decoder_.decoder.md#run)
 * [runPromise](_decoder_.decoder.md#runpromise)
 * [runWithException](_decoder_.decoder.md#runwithexception)
+* [where](_decoder_.decoder.md#where)
 * [anyJson](_decoder_.decoder.md#anyjson)
 * [array](_decoder_.decoder.md#array)
 * [boolean](_decoder_.decoder.md#boolean)
@@ -103,9 +104,11 @@ ___
 
 ▸ **andThen**B(f: *`function`*): [Decoder](_decoder_.decoder.md)<`B`>
 
-Chain together a sequence of decoders. The first decoder will run, and then the function will determine what decoder to run second. If the result of the first decoder succeeds then `f` will be applied to the decoded value. If it fails the error will propagate through. One use case for `andThen` is returning a custom error message.
+Chain together a sequence of decoders. The first decoder will run, and then the function will determine what decoder to run second. If the result of the first decoder succeeds then `f` will be applied to the decoded value. If it fails the error will propagate through.
 
-Example:
+This is a very powerful method -- it can act as both the `map` and `where` methods, can improve error messages for edge cases, and can be used to make a decoder for custom types.
+
+Example of adding an error message:
 
 ```
 const versionDecoder = valueAt(['version'], number());
@@ -127,12 +130,22 @@ decoder.run({version: 5, x: 'abc'})
 // =>
 // {
 //   ok: false,
-//   error: {
-//     ...
-//     at: 'input',
-//     message: 'Unable to decode info, version 5 is not supported.'
-//   }
+//   error: {... message: 'Unable to decode info, version 5 is not supported.'}
 // }
+```
+
+Example of decoding a custom type:
+
+```
+// nominal type for arrays with a length of at least one
+type NonEmptyArray<T> = T[] & { __nonEmptyArrayBrand__: void };
+
+const nonEmptyArrayDecoder = <T>(values: Decoder<T>): Decoder<NonEmptyArray<T>> =>
+  array(values).andThen(arr =>
+    arr.length > 0
+      ? succeed(createNonEmptyArray(arr))
+      : fail(`expected a non-empty array, got an empty array`)
+  );
 ```
 
 **Type parameters:**
@@ -242,6 +255,41 @@ Run the decoder and return the value on success, or throw an exception with a fo
 | json | `any` |
 
 **Returns:** `A`
+
+___
+<a id="where"></a>
+
+###  where
+
+▸ **where**(test: *`function`*, errorMessage: *`string`*): [Decoder](_decoder_.decoder.md)<`A`>
+
+Add constraints to a decoder _without_ changing the resulting type. The `test` argument is a predicate function which returns true for valid inputs. When `test` fails on an input, the decoder fails with the given `errorMessage`.
+
+```
+const chars = (length: number): Decoder<string> =>
+  string().where(
+    (s: string) => s.length === length,
+    `expected a string of length ${length}`
+  );
+
+chars(5).run('12345')
+// => {ok: true, result: '12345'}
+
+chars(2).run('HELLO')
+// => {ok: false, error: {... message: 'expected a string of length 2'}}
+
+chars(12).run(true)
+// => {ok: false, error: {... message: 'expected a string, got a boolean'}}
+```
+
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| test | `function` |
+| errorMessage | `string` |
+
+**Returns:** [Decoder](_decoder_.decoder.md)<`A`>
 
 ___
 <a id="anyjson"></a>
