@@ -399,12 +399,12 @@ describe('dict', () => {
 });
 
 describe('optional', () => {
-  describe('decoding an interface with optional fields', () => {
-    interface User {
-      id: number;
-      isDog?: boolean;
-    }
+  interface User {
+    id: number;
+    isDog?: boolean;
+  }
 
+  describe('decoding an interface with optional fields', () => {
     const decoder = object<User>({
       id: number(),
       isDog: optional(boolean())
@@ -425,6 +425,36 @@ describe('optional', () => {
         error: {at: 'input.isDog', message: 'expected a boolean, got a string'}
       });
     });
+  });
+
+  it('supports map', () => {
+    const decoder = object<User>({
+      id: number(),
+      isDog: optional(number()).map(num => num !== 0)
+    });
+
+    expect(decoder.run({id: 1, isDog: 0})).toEqual({ok: true, result: {id: 1, isDog: false}});
+    expect(decoder.run({id: 1, isDog: 77})).toEqual({ok: true, result: {id: 1, isDog: true}});
+    expect(decoder.run({id: 1})).toEqual({ok: true, result: {id: 1}});
+  });
+
+  it('supports andThen', () => {
+    const decoder = object<User>({
+      id: number(),
+      isDog: optional(string()).andThen(
+        dogName =>
+          dogName.toLowerCase()[0] === 'd'
+            ? succeed(true)
+            : fail(`${dogName} is not a dog, all dog names start with 'D'`)
+      )
+    });
+
+    expect(decoder.run({id: 1, isDog: 'Doug'})).toEqual({ok: true, result: {id: 1, isDog: true}});
+    expect(decoder.run({id: 1, isDog: 'Wanda'})).toMatchObject({
+      ok: false,
+      error: {message: "Wanda is not a dog, all dog names start with 'D'"}
+    });
+    expect(decoder.run({id: 1})).toEqual({ok: true, result: {id: 1}});
   });
 });
 
@@ -531,7 +561,7 @@ describe('withDefault', () => {
 });
 
 describe('valueAt', () => {
-  describe('decode an value', () => {
+  describe('decode a value accessed from a path', () => {
     it('can decode a single object field', () => {
       const decoder = valueAt(['a'], string());
       expect(decoder.run({a: 'boots', b: 'cats'})).toEqual({ok: true, result: 'boots'});
@@ -573,7 +603,10 @@ describe('valueAt', () => {
   });
 
   describe('decode an optional field', () => {
-    const decoder = valueAt(['a', 'b', 'c'], oneOf(string(), constant(undefined)));
+    const decoder: Decoder<string | undefined> = valueAt(
+      ['a', 'b', 'c'],
+      union(string(), constant(undefined))
+    );
 
     it('fails when the path does not exist', () => {
       const error = decoder.run({a: {x: 'cats'}});
