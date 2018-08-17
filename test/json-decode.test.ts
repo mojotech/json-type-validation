@@ -147,6 +147,22 @@ describe('constant', () => {
     expect(decoder.run({x: null})).toEqual({ok: true, result: {x: null}});
   });
 
+  it('can decode undefined', () => {
+    interface UndefinedValue {
+      a: string;
+      b: undefined;
+    }
+    const decoder = object<UndefinedValue>({a: string(), b: constant(undefined)});
+
+    const run1 = decoder.run({a: 'qwerty', b: undefined});
+    expect(run1).toEqual({ok: true, result: {a: 'qwerty', b: undefined}});
+    expect(Result.map(Object.keys, run1)).toEqual({ok: true, result: ['a', 'b']});
+
+    const run2 = decoder.run({a: 'asdfgh'});
+    expect(run2).toEqual({ok: true, result: {a: 'asdfgh', b: undefined}});
+    expect(Result.map(Object.keys, run2)).toEqual({ok: true, result: ['a', 'b']});
+  });
+
   it('can decode a constant array', () => {
     type A = [1, 2, 3];
     const decoder: Decoder<A> = constant<A>([1, 2, 3]);

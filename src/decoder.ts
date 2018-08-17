@@ -218,6 +218,7 @@ export class Decoder<A> {
    *  | constant(true)               | Decoder<true>        |
    *  | constant(false)              | Decoder<false>       |
    *  | constant(null)               | Decoder<null>        |
+   *  | constant(undefined)          | Decoder<undefined>   |
    *  | constant('alaska')           | Decoder<string>      |
    *  | constant<'alaska'>('alaska') | Decoder<'alaska'>    |
    *  | constant(50)                 | Decoder<number>      |
@@ -474,18 +475,18 @@ export class Decoder<A> {
    * ```
    *
    * Note that the `decoder` is ran on the value found at the last key in the
-   * path, even if the last key is not found. This allows the `optional`
-   * decoder to succeed when appropriate.
+   * path, even if the last key is not found. This allows the value to be
+   * `undefined` when appropriate.
    * ```
-   * const optionalDecoder = valueAt(['a', 'b', 'c'], optional(string()));
+   * const decoder = valueAt(['a', 'b', 'c'], union(string(), constant(undefined)));
    *
-   * optionalDecoder.run({a: {b: {c: 'surprise!'}}})
+   * decoder.run({a: {b: {c: 'surprise!'}}})
    * // => {ok: true, result: 'surprise!'}
    *
-   * optionalDecoder.run({a: {b: 'cats'}})
+   * decoder.run({a: {b: 'cats'}})
    * // => {ok: false, error: {... at: 'input.a.b.c' message: 'expected an object, got "cats"'}
    *
-   * optionalDecoder.run({a: {b: {z: 1}}})
+   * decoder.run({a: {b: {z: 1}}})
    * // => {ok: true, result: undefined}
    * ```
    */
