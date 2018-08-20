@@ -11,6 +11,7 @@
 * [dict](_combinators_.md#dict)
 * [fail](_combinators_.md#fail)
 * [lazy](_combinators_.md#lazy)
+* [object](_combinators_.md#object)
 * [oneOf](_combinators_.md#oneof)
 * [optional](_combinators_.md#optional)
 * [succeed](_combinators_.md#succeed)
@@ -22,7 +23,6 @@
 * [boolean](_combinators_.md#boolean)
 * [constant](_combinators_.md#constant)
 * [number](_combinators_.md#number)
-* [object](_combinators_.md#object)
 * [string](_combinators_.md#string)
 * [union](_combinators_.md#union)
 
@@ -136,6 +136,15 @@ See `Decoder.lazy`
 **Returns:** [Decoder](../classes/_decoder_.decoder.md)<`A`>
 
 ___
+<a id="object"></a>
+
+### `<Const>` object
+
+**● object**: *[object](../classes/_decoder_.decoder.md#object)* =  Decoder.object
+
+See `Decoder.object`
+
+___
 <a id="oneof"></a>
 
 ### `<Const>` oneOf
@@ -163,23 +172,9 @@ ___
 
 ### `<Const>` optional
 
-**● optional**: *`function`* =  Decoder.optional
+**● optional**: *[optional]()* =  OptionalDecoder.optional
 
 See `Decoder.optional`
-
-#### Type declaration
-▸A(decoder: *[Decoder](../classes/_decoder_.decoder.md)<`A`>*): [Decoder](../classes/_decoder_.decoder.md)< `A` &#124; `undefined`>
-
-**Type parameters:**
-
-#### A 
-**Parameters:**
-
-| Param | Type |
-| ------ | ------ |
-| decoder | [Decoder](../classes/_decoder_.decoder.md)<`A`> |
-
-**Returns:** [Decoder](../classes/_decoder_.decoder.md)< `A` &#124; `undefined`>
 
 ___
 <a id="succeed"></a>
@@ -318,26 +313,6 @@ ___
 See `Decoder.number`
 
 **Returns:** [Decoder](../classes/_decoder_.decoder.md)<`number`>
-
-___
-<a id="object"></a>
-
-###  object
-
-▸ **object**A(decoders: *[DecoderObject](_decoder_.md#decoderobject)<`A`>*): [Decoder](../classes/_decoder_.decoder.md)<`A`>
-
-See `Decoder.object`
-
-**Type parameters:**
-
-#### A 
-**Parameters:**
-
-| Param | Type |
-| ------ | ------ |
-| decoders | [DecoderObject](_decoder_.md#decoderobject)<`A`> |
-
-**Returns:** [Decoder](../classes/_decoder_.decoder.md)<`A`>
 
 ___
 <a id="string"></a>

@@ -7,6 +7,7 @@
 ### Classes
 
 * [Decoder](../classes/_decoder_.decoder.md)
+* [OptionalDecoder](../classes/_decoder_.optionaldecoder.md)
 
 ### Interfaces
 
@@ -31,19 +32,25 @@
 
 **ΤDecoderObject**: *`object`*
 
-Defines a mapped type over an interface `A`. `DecoderObject<A>` is an interface that has all the keys or `A`, but each key's property type is mapped to a decoder for that type. This type is used when creating decoders for objects.
+Defines a mapped type over an interface `A`. This type is used when creating decoders for objects.
+
+`DecoderObject<A>` is an interface that has all the properties or `A`, but each property's type is mapped to a decoder for that type. If a property is required in `A`, the decoder type is `Decoder<proptype>`. If a property is optional in `A`, then that property is required in `DecoderObject<A>`, but the decoder type is `OptionalDecoder<proptype> | Decoder<proptype>`.
+
+The `OptionalDecoder` type is only returned by the `optional` decoder.
 
 Example:
 
 ```
-interface X {
+interface ABC {
   a: boolean;
-  b: string;
+  b?: string;
+  c: number | undefined;
 }
 
-const decoderObject: DecoderObject<X> = {
-  a: boolean(),
-  b: string()
+DecoderObject<ABC> === {
+  a: Decoder<boolean>;
+  b: OptionalDecoder<string> | Decoder<string>;
+  c: Decoder<number | undefined>;
 }
 ```
 

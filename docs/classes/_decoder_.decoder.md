@@ -18,10 +18,6 @@ Alternatively, the main decoder `run()` method returns an object of type `Result
 
 ## Index
 
-### Constructors
-
-* [constructor](_decoder_.decoder.md#constructor)
-
 ### Properties
 
 * [decode](_decoder_.decoder.md#decode)
@@ -43,7 +39,6 @@ Alternatively, the main decoder `run()` method returns an object of type `Result
 * [number](_decoder_.decoder.md#number)
 * [object](_decoder_.decoder.md#object)
 * [oneOf](_decoder_.decoder.md#oneof)
-* [optional](_decoder_.decoder.md#optional)
 * [string](_decoder_.decoder.md#string)
 * [succeed](_decoder_.decoder.md#succeed)
 * [union](_decoder_.decoder.md#union)
@@ -51,28 +46,6 @@ Alternatively, the main decoder `run()` method returns an object of type `Result
 * [withDefault](_decoder_.decoder.md#withdefault)
 
 ---
-
-## Constructors
-
-<a id="constructor"></a>
-
-### `<Private>` constructor
-
-⊕ **new Decoder**(decode: *`function`*): [Decoder](_decoder_.decoder.md)
-
-The Decoder class constructor is kept private to separate the internal `decode` function from the external `run` function. The distinction between the two functions is that `decode` returns a `Partial<DecoderError>` on failure, which contains an unfinished error report. When `run` is called on a decoder, the relevant series of `decode` calls is made, and then on failure the resulting `Partial<DecoderError>` is turned into a `DecoderError` by filling in the missing informaiton.
-
-While hiding the constructor may seem restrictive, leveraging the provided decoder combinators and helper functions such as `andThen` and `map` should be enough to build specialized decoders as needed.
-
-**Parameters:**
-
-| Param | Type |
-| ------ | ------ |
-| decode | `function` |
-
-**Returns:** [Decoder](_decoder_.decoder.md)
-
-___
 
 ## Properties
 
@@ -331,6 +304,7 @@ Providing the type parameter is only necessary for type-literal strings and numb
  | constant(true)               | Decoder<true>        |
  | constant(false)              | Decoder<false>       |
  | constant(null)               | Decoder<null>        |
+ | constant(undefined)          | Decoder<undefined>   |
  | constant('alaska')           | Decoder<string>      |
  | constant<'alaska'>('alaska') | Decoder<'alaska'>    |
  | constant(50)                 | Decoder<number>      |
@@ -349,12 +323,13 @@ interface Bear {
   isBig: boolean;
 }
 
-const bearDecoder1: Decoder<Bear> = object({
+const bearDecoder1 = object<Bear>({
   kind: constant('bear'),
   isBig: boolean()
 });
-// Type 'Decoder<{ kind: string; isBig: boolean; }>' is not assignable to
-// type 'Decoder<Bear>'. Type 'string' is not assignable to type '"bear"'.
+// Types of property 'kind' are incompatible.
+//   Type 'Decoder<string>' is not assignable to type 'Decoder<"bear">'.
+//     Type 'string' is not assignable to type '"bear"'.
 
 const bearDecoder2: Decoder<Bear> = object({
   kind: constant<'bear'>('bear'),
@@ -560,40 +535,6 @@ oneOf(constant('start'), constant('stop'), succeed('unknown'))
 | `Rest` decoders | [Decoder](_decoder_.decoder.md)<`A`>[] |
 
 **Returns:** [Decoder](_decoder_.decoder.md)<`A`>
-
-___
-<a id="optional"></a>
-
-### `<Static>` optional
-
-▸ **optional**A(decoder: *[Decoder](_decoder_.decoder.md)<`A`>*): [Decoder](_decoder_.decoder.md)< `undefined` &#124; `A`>
-
-Decoder for values that may be `undefined`. This is primarily helpful for decoding interfaces with optional fields.
-
-Example:
-
-```
-interface User {
-  id: number;
-  isOwner?: boolean;
-}
-
-const decoder: Decoder<User> = object({
-  id: number(),
-  isOwner: optional(boolean())
-});
-```
-
-**Type parameters:**
-
-#### A 
-**Parameters:**
-
-| Param | Type |
-| ------ | ------ |
-| decoder | [Decoder](_decoder_.decoder.md)<`A`> |
-
-**Returns:** [Decoder](_decoder_.decoder.md)< `undefined` &#124; `A`>
 
 ___
 <a id="string"></a>
@@ -812,18 +753,18 @@ decoder.run({a: {x: 'cats'}})
 // => {ok: false, error: {... at: 'input.a.b[0]' message: 'path does not exist'}}
 ```
 
-Note that the `decoder` is ran on the value found at the last key in the path, even if the last key is not found. This allows the `optional` decoder to succeed when appropriate.
+Note that the `decoder` is ran on the value found at the last key in the path, even if the last key is not found. This allows the value to be `undefined` when appropriate.
 
 ```
-const optionalDecoder = valueAt(['a', 'b', 'c'], optional(string()));
+const decoder = valueAt(['a', 'b', 'c'], union(string(), constant(undefined)));
 
-optionalDecoder.run({a: {b: {c: 'surprise!'}}})
+decoder.run({a: {b: {c: 'surprise!'}}})
 // => {ok: true, result: 'surprise!'}
 
-optionalDecoder.run({a: {b: 'cats'}})
+decoder.run({a: {b: 'cats'}})
 // => {ok: false, error: {... at: 'input.a.b.c' message: 'expected an object, got "cats"'}
 
-optionalDecoder.run({a: {b: {z: 1}}})
+decoder.run({a: {b: {z: 1}}})
 // => {ok: true, result: undefined}
 ```
 

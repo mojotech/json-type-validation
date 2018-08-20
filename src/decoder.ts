@@ -14,25 +14,44 @@ export interface DecoderError {
 }
 
 /**
- * Defines a mapped type over an interface `A`. `DecoderObject<A>` is an
- * interface that has all the keys or `A`, but each key's property type is
- * mapped to a decoder for that type. This type is used when creating decoders
- * for objects.
+ * Helper type with no semantic meaning, used as part of a trick in
+ * `DecoderObject` to distinguish between optional properties and properties
+ * that may have a value of undefined, but aren't optional.
+ */
+type HideUndefined<T> = {};
+
+/**
+ * Defines a mapped type over an interface `A`. This type is used when creating
+ * decoders for objects.
+ *
+ * `DecoderObject<A>` is an interface that has all the properties or `A`, but
+ * each property's type is mapped to a decoder for that type. If a property is
+ * required in `A`, the decoder type is `Decoder<proptype>`. If a property is
+ * optional in `A`, then that property is required in `DecoderObject<A>`, but
+ * the decoder type is `OptionalDecoder<proptype> | Decoder<proptype>`.
+ *
+ * The `OptionalDecoder` type is only returned by the `optional` decoder.
  *
  * Example:
  * ```
- * interface X {
+ * interface ABC {
  *   a: boolean;
- *   b: string;
+ *   b?: string;
+ *   c: number | undefined;
  * }
  *
- * const decoderObject: DecoderObject<X> = {
- *   a: boolean(),
- *   b: string()
+ * DecoderObject<ABC> === {
+ *   a: Decoder<boolean>;
+ *   b: OptionalDecoder<string> | Decoder<string>;
+ *   c: Decoder<number | undefined>;
  * }
  * ```
  */
-export type DecoderObject<A> = {[t in keyof A]: Decoder<A[t]>};
+export type DecoderObject<T> = {
+  [P in keyof T]-?: undefined extends {[Q in keyof T]: HideUndefined<T[Q]>}[P]
+    ? OptionalDecoder<Exclude<T[P], undefined>> | Decoder<Exclude<T[P], undefined>>
+    : Decoder<T[P]>
+};
 
 /**
  * Type guard for `DecoderError`. One use case of the type guard is in the
@@ -113,6 +132,11 @@ const prependAt = (newAt: string, {at, ...rest}: Partial<DecoderError>): Partial
  */
 export class Decoder<A> {
   /**
+   * @hidden
+   */
+  readonly _kind = 'Decoder';
+
+  /**
    * The Decoder class constructor is kept private to separate the internal
    * `decode` function from the external `run` function. The distinction
    * between the two functions is that `decode` returns a
@@ -125,6 +149,8 @@ export class Decoder<A> {
    * provided decoder combinators and helper functions such as
    * `andThen` and `map` should be enough to build specialized decoders as
    * needed.
+   *
+   * @hidden
    */
   private constructor(private decode: (json: any) => Result.Result<A, Partial<DecoderError>>) {}
 
@@ -197,6 +223,7 @@ export class Decoder<A> {
    *  | constant(true)               | Decoder<true>        |
    *  | constant(false)              | Decoder<false>       |
    *  | constant(null)               | Decoder<null>        |
+   *  | constant(undefined)          | Decoder<undefined>   |
    *  | constant('alaska')           | Decoder<string>      |
    *  | constant<'alaska'>('alaska') | Decoder<'alaska'>    |
    *  | constant(50)                 | Decoder<number>      |
@@ -215,12 +242,13 @@ export class Decoder<A> {
    *   isBig: boolean;
    * }
    *
-   * const bearDecoder1: Decoder<Bear> = object({
+   * const bearDecoder1 = object<Bear>({
    *   kind: constant('bear'),
    *   isBig: boolean()
    * });
-   * // Type 'Decoder<{ kind: string; isBig: boolean; }>' is not assignable to
-   * // type 'Decoder<Bear>'. Type 'string' is not assignable to type '"bear"'.
+   * // Types of property 'kind' are incompatible.
+   * //   Type 'Decoder<string>' is not assignable to type 'Decoder<"bear">'.
+   * //     Type 'string' is not assignable to type '"bear"'.
    *
    * const bearDecoder2: Decoder<Bear> = object({
    *   kind: constant<'bear'>('bear'),
@@ -280,15 +308,17 @@ export class Decoder<A> {
         let obj: any = {};
         for (const key in decoders) {
           if (decoders.hasOwnProperty(key)) {
-            const r = decoders[key].decode(json[key]);
-            if (r.ok === true) {
-              // tslint:disable-next-line:strict-type-predicates
-              if (r.result !== undefined) {
-                obj[key] = r.result;
-              }
-            } else if (json[key] === undefined) {
+            // hack: type as any to access the private `decode` method on OptionalDecoder
+            const decoder: any = decoders[key];
+            const r = decoder.decode(json[key]);
+            if (
+              (r.ok === true && decoder._kind === 'Decoder') ||
+              (r.ok === true && decoder._kind === 'OptionalDecoder' && r.result !== undefined)
+            ) {
+              obj[key] = r.result;
+            } else if (r.ok === false && json[key] === undefined) {
               return Result.err({message: `the key '${key}' is required but was not present`});
-            } else {
+            } else if (r.ok === false) {
               return Result.err(prependAt(`.${key}`, r.error));
             }
           }
@@ -362,28 +392,6 @@ export class Decoder<A> {
         return Result.err({message: expectedGot('an object', json)});
       }
     });
-
-  /**
-   * Decoder for values that may be `undefined`. This is primarily helpful for
-   * decoding interfaces with optional fields.
-   *
-   * Example:
-   * ```
-   * interface User {
-   *   id: number;
-   *   isOwner?: boolean;
-   * }
-   *
-   * const decoder: Decoder<User> = object({
-   *   id: number(),
-   *   isOwner: optional(boolean())
-   * });
-   * ```
-   */
-  static optional = <A>(decoder: Decoder<A>): Decoder<undefined | A> =>
-    new Decoder<undefined | A>(
-      (json: any) => (json === undefined ? Result.ok(undefined) : decoder.decode(json))
-    );
 
   /**
    * Decoder that attempts to run each decoder in `decoders` and either succeeds
@@ -472,18 +480,18 @@ export class Decoder<A> {
    * ```
    *
    * Note that the `decoder` is ran on the value found at the last key in the
-   * path, even if the last key is not found. This allows the `optional`
-   * decoder to succeed when appropriate.
+   * path, even if the last key is not found. This allows the value to be
+   * `undefined` when appropriate.
    * ```
-   * const optionalDecoder = valueAt(['a', 'b', 'c'], optional(string()));
+   * const decoder = valueAt(['a', 'b', 'c'], union(string(), constant(undefined)));
    *
-   * optionalDecoder.run({a: {b: {c: 'surprise!'}}})
+   * decoder.run({a: {b: {c: 'surprise!'}}})
    * // => {ok: true, result: 'surprise!'}
    *
-   * optionalDecoder.run({a: {b: 'cats'}})
+   * decoder.run({a: {b: 'cats'}})
    * // => {ok: false, error: {... at: 'input.a.b.c' message: 'expected an object, got "cats"'}
    *
-   * optionalDecoder.run({a: {b: {z: 1}}})
+   * decoder.run({a: {b: {z: 1}}})
    * // => {ok: true, result: undefined}
    * ```
    */
@@ -653,5 +661,96 @@ export class Decoder<A> {
   andThen = <B>(f: (value: A) => Decoder<B>): Decoder<B> =>
     new Decoder<B>((json: any) =>
       Result.andThen(value => f(value).decode(json), this.decode(json))
+    );
+}
+
+/**
+ * The `optional` decoder is given it's own type, the `OptionalDecoder` type,
+ * since it behaves differently from the other decoders. This decoder has no
+ * `run` method, so it can't be directly used to test a value. Instead, the
+ * `object` decoder accepts `optional` for decoding object properties that have
+ * been marked as optional with the `field?: value` notation.
+ */
+export class OptionalDecoder<A> {
+  /**
+   * @hidden
+   */
+  readonly _kind = 'OptionalDecoder';
+
+  /**
+   * @hidden
+   */
+  private constructor(
+    private decode: (json: any) => Result.Result<A | undefined, Partial<DecoderError>>
+  ) {}
+
+  /**
+   * Decoder to designate that a property may not be present in an object. The
+   * behavior of `optional` is distinct from using `constant(undefined)` in
+   * that when the property is not found in the input, the key will not be
+   * present in the decoded value.
+   *
+   * Example:
+   * ```
+   * // type with explicit undefined property
+   * interface Breakfast1 {
+   *   eggs: number;
+   *   withBacon: boolean | undefined;
+   * }
+   *
+   * // type with optional property
+   * interface Breakfast2 {
+   *   eggs: number;
+   *   withBacon?: boolean;
+   * }
+   *
+   * // in the first case we can't use `optional`
+   * breakfast1Decoder = object<Breakfast1>({
+   *   eggs: number(),
+   *   withBacon: union(boolean(), constant(undefined))
+   * });
+   *
+   * // in the second case we can
+   * breakfast2Decoder = object<Breakfast2>({
+   *   eggs: number(),
+   *   withBacon: optional(boolean())
+   * });
+   *
+   * breakfast1Decoder.run({eggs: 12})
+   * // => {ok: true, result: {eggs: 12, withBacon: undefined}}
+   *
+   * breakfast2Decoder.run({eggs: 7})
+   * // => {ok: true, result: {eggs: 7}}
+   * ```
+   */
+  static optional = <A>(decoder: Decoder<A>): OptionalDecoder<A> =>
+    new OptionalDecoder(
+      // hack: type decoder as any to access the private `decode` method on Decoder
+      (json: any) => (json === undefined ? Result.ok(undefined) : (decoder as any).decode(json))
+    );
+
+  /**
+   * See `Decoder.prototype.map`. The function `f` is only executed if the
+   * optional decoder successfuly finds and decodes a value.
+   */
+  map = <B>(f: (value: A) => B): OptionalDecoder<B> =>
+    new OptionalDecoder<B>((json: any) =>
+      Result.map(
+        (value: A | undefined) => (value === undefined ? undefined : f(value)),
+        this.decode(json)
+      )
+    );
+
+  /**
+   * See `Decoder.prototype.andThen`. The function `f` is only executed if the
+   * optional decoder successfuly finds and decodes a value.
+   */
+  andThen = <B>(f: (value: A) => Decoder<B>): OptionalDecoder<B> =>
+    new OptionalDecoder<B>((json: any) =>
+      Result.andThen(
+        (value: A | undefined) =>
+          value === undefined ? Result.ok(undefined) : (f(value) as any).decode(json),
+        this.decode(json)
+      )
     );
 }

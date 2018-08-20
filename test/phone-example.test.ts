@@ -42,14 +42,14 @@ describe('decode phone number objects', () => {
     constant(PhoneUse.Work)
   );
 
-  const internationalPhoneDecoder: Decoder<InternationalPhone> = object({
+  const internationalPhoneDecoder = object<InternationalPhone>({
     id: number(),
     use: optional(phoneUseDecoder),
     international: constant(true),
     rawNumber: string()
   });
 
-  const domesticPhoneDecoder: Decoder<DomesticPhone> = object({
+  const domesticPhoneDecoder = object<DomesticPhone>({
     id: number(),
     use: optional(phoneUseDecoder),
     international: constant(false),
@@ -58,7 +58,10 @@ describe('decode phone number objects', () => {
     lineNumber: string()
   });
 
-  const phoneDecoder: Decoder<Phone> = union(domesticPhoneDecoder, internationalPhoneDecoder);
+  const phoneDecoder: Decoder<Phone> = union<DomesticPhone, InternationalPhone>(
+    domesticPhoneDecoder,
+    internationalPhoneDecoder
+  );
 
   const phonesDecoder: Decoder<Phone[]> = array(phoneDecoder);
 

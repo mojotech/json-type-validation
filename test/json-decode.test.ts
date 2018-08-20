@@ -124,7 +124,7 @@ describe('constant', () => {
     interface TrueValue {
       x: true;
     }
-    const decoder: Decoder<TrueValue> = object({x: constant(true)});
+    const decoder: Decoder<TrueValue> = object<TrueValue>({x: constant(true)});
 
     expect(decoder.run({x: true})).toEqual({ok: true, result: {x: true}});
   });
@@ -133,7 +133,7 @@ describe('constant', () => {
     interface FalseValue {
       x: false;
     }
-    const decoder: Decoder<FalseValue> = object({x: constant(false)});
+    const decoder = object<FalseValue>({x: constant(false)});
 
     expect(decoder.run({x: false})).toEqual({ok: true, result: {x: false}});
   });
@@ -142,9 +142,25 @@ describe('constant', () => {
     interface NullValue {
       x: null;
     }
-    const decoder: Decoder<NullValue> = object({x: constant(null)});
+    const decoder = object<NullValue>({x: constant(null)});
 
     expect(decoder.run({x: null})).toEqual({ok: true, result: {x: null}});
+  });
+
+  it('can decode undefined', () => {
+    interface UndefinedValue {
+      a: string;
+      b: undefined;
+    }
+    const decoder = object<UndefinedValue>({a: string(), b: constant(undefined)});
+
+    const run1 = decoder.run({a: 'qwerty', b: undefined});
+    expect(run1).toEqual({ok: true, result: {a: 'qwerty', b: undefined}});
+    expect(Result.map(Object.keys, run1)).toEqual({ok: true, result: ['a', 'b']});
+
+    const run2 = decoder.run({a: 'asdfgh'});
+    expect(run2).toEqual({ok: true, result: {a: 'asdfgh', b: undefined}});
+    expect(Result.map(Object.keys, run2)).toEqual({ok: true, result: ['a', 'b']});
   });
 
   it('can decode a constant array', () => {
@@ -179,8 +195,18 @@ describe('object', () => {
     });
 
     it('can decode a nested object', () => {
-      const decoder = object({
-        payload: object({x: number(), y: number()}),
+      interface Point {
+        x: number;
+        y: number;
+      }
+
+      interface Location {
+        payload: Point;
+        error: false;
+      }
+
+      const decoder = object<Location>({
+        payload: object<Point>({x: number(), y: number()}),
         error: constant(false)
       });
       const json = {payload: {x: 5, y: 2}, error: false};
@@ -243,14 +269,53 @@ describe('object', () => {
     });
   });
 
-  it('ignores optional fields that decode to undefined', () => {
-    const decoder = object({
-      a: number(),
-      b: optional(string())
+  describe('optional and undefined fields', () => {
+    it('ignores optional fields that decode to undefined', () => {
+      interface AB {
+        a: number;
+        b?: string;
+      }
+
+      const decoder: Decoder<AB> = object<AB>({
+        a: number(),
+        b: optional(string())
+      });
+
+      expect(decoder.run({a: 12, b: 'hats'})).toEqual({ok: true, result: {a: 12, b: 'hats'}});
+      expect(decoder.run({a: 12})).toEqual({ok: true, result: {a: 12}});
     });
 
-    expect(decoder.run({a: 12, b: 'hats'})).toEqual({ok: true, result: {a: 12, b: 'hats'}});
-    expect(decoder.run({a: 12})).toEqual({ok: true, result: {a: 12}});
+    it('includes fields that are mapped to a value when not found', () => {
+      interface AB {
+        a: number;
+        b: string;
+      }
+
+      const decoder: Decoder<AB> = object<AB>({
+        a: number(),
+        b: oneOf(string(), constant(undefined)).map(
+          (b: string | undefined) => (b === undefined ? 'b not found' : b)
+        )
+      });
+
+      expect(decoder.run({a: 12, b: 'hats'})).toEqual({ok: true, result: {a: 12, b: 'hats'}});
+      expect(decoder.run({a: 12})).toEqual({ok: true, result: {a: 12, b: 'b not found'}});
+    });
+
+    it('includes fields that are mapped to a undefined when not found', () => {
+      interface AB {
+        a: number;
+        b: string | undefined;
+      }
+
+      const decoder: Decoder<AB> = object<AB>({
+        a: number(),
+        b: oneOf(string(), constant(undefined))
+      });
+
+      expect(decoder.run({a: 12, b: 'hats'})).toEqual({ok: true, result: {a: 12, b: 'hats'}});
+      expect(decoder.run({a: 12})).toEqual({ok: true, result: {a: 12, b: undefined}});
+    });
   });
 });
 
@@ -334,32 +399,13 @@ describe('dict', () => {
 });
 
 describe('optional', () => {
-  describe('decoding a non-object type', () => {
-    const decoder = optional(number());
-
-    it('can decode the given type', () => {
-      expect(decoder.run(5)).toEqual({ok: true, result: 5});
-    });
-
-    it('can decode undefined', () => {
-      expect(decoder.run(undefined)).toEqual({ok: true, result: undefined});
-    });
-
-    it('fails when the value is invalid', () => {
-      expect(decoder.run(false)).toMatchObject({
-        ok: false,
-        error: {at: 'input', message: 'expected a number, got a boolean'}
-      });
-    });
-  });
+  interface User {
+    id: number;
+    isDog?: boolean;
+  }
 
   describe('decoding an interface with optional fields', () => {
-    interface User {
-      id: number;
-      isDog?: boolean;
-    }
-
-    const decoder: Decoder<User> = object({
+    const decoder = object<User>({
       id: number(),
       isDog: optional(boolean())
     });
@@ -379,6 +425,36 @@ describe('optional', () => {
         error: {at: 'input.isDog', message: 'expected a boolean, got a string'}
       });
     });
+  });
+
+  it('supports map', () => {
+    const decoder = object<User>({
+      id: number(),
+      isDog: optional(number()).map(num => num !== 0)
+    });
+
+    expect(decoder.run({id: 1, isDog: 0})).toEqual({ok: true, result: {id: 1, isDog: false}});
+    expect(decoder.run({id: 1, isDog: 77})).toEqual({ok: true, result: {id: 1, isDog: true}});
+    expect(decoder.run({id: 1})).toEqual({ok: true, result: {id: 1}});
+  });
+
+  it('supports andThen', () => {
+    const decoder = object<User>({
+      id: number(),
+      isDog: optional(string()).andThen(
+        dogName =>
+          dogName.toLowerCase()[0] === 'd'
+            ? succeed(true)
+            : fail(`${dogName} is not a dog, all dog names start with 'D'`)
+      )
+    });
+
+    expect(decoder.run({id: 1, isDog: 'Doug'})).toEqual({ok: true, result: {id: 1, isDog: true}});
+    expect(decoder.run({id: 1, isDog: 'Wanda'})).toMatchObject({
+      ok: false,
+      error: {message: "Wanda is not a dog, all dog names start with 'D'"}
+    });
+    expect(decoder.run({id: 1})).toEqual({ok: true, result: {id: 1}});
   });
 });
 
@@ -449,8 +525,8 @@ describe('union', () => {
   type C = A | B;
 
   const decoder: Decoder<C> = union(
-    object({kind: constant<'a'>('a'), value: number()}),
-    object({kind: constant<'b'>('b'), value: boolean()})
+    object<A>({kind: constant<'a'>('a'), value: number()}),
+    object<B>({kind: constant<'b'>('b'), value: boolean()})
   );
 
   it('can decode a value that matches one of the union types', () => {
@@ -485,7 +561,7 @@ describe('withDefault', () => {
 });
 
 describe('valueAt', () => {
-  describe('decode an value', () => {
+  describe('decode a value accessed from a path', () => {
     it('can decode a single object field', () => {
       const decoder = valueAt(['a'], string());
       expect(decoder.run({a: 'boots', b: 'cats'})).toEqual({ok: true, result: 'boots'});
@@ -527,7 +603,10 @@ describe('valueAt', () => {
   });
 
   describe('decode an optional field', () => {
-    const decoder = valueAt(['a', 'b', 'c'], optional(string()));
+    const decoder: Decoder<string | undefined> = valueAt(
+      ['a', 'b', 'c'],
+      union(string(), constant(undefined))
+    );
 
     it('fails when the path does not exist', () => {
       const error = decoder.run({a: {x: 'cats'}});
@@ -628,7 +707,7 @@ describe('lazy', () => {
       replies: Comment[];
     }
 
-    const decoder: Decoder<Comment> = object({
+    const decoder: Decoder<Comment> = object<Comment>({
       msg: string(),
       replies: lazy(() => array(decoder))
     });
