@@ -49,6 +49,7 @@ Alternatively, the main decoder `run()` method returns an object of type `Result
 * [string](_decoder_.decoder.md#string)
 * [succeed](_decoder_.decoder.md#succeed)
 * [union](_decoder_.decoder.md#union)
+* [unknownJson](_decoder_.decoder.md#unknownjson)
 * [valueAt](_decoder_.decoder.md#valueat)
 * [withDefault](_decoder_.decoder.md#withdefault)
 
@@ -85,13 +86,13 @@ ___
 **● decode**: *`function`*
 
 #### Type declaration
-▸(json: *`any`*): `DecodeResult`<`A`>
+▸(json: *`unknown`*): `DecodeResult`<`A`>
 
 **Parameters:**
 
 | Param | Type |
 | ------ | ------ |
-| json | `any` |
+| json | `unknown` |
 
 **Returns:** `DecodeResult`<`A`>
 
@@ -192,7 +193,7 @@ ___
 
 ###  run
 
-▸ **run**(json: *`any`*): `RunResult`<`A`>
+▸ **run**(json: *`unknown`*): `RunResult`<`A`>
 
 Run the decoder and return a `Result` with either the decoded value or a `DecoderError` containing the json input, the location of the error, and the error message.
 
@@ -219,7 +220,7 @@ string().run(9001)
 
 | Param | Type |
 | ------ | ------ |
-| json | `any` |
+| json | `unknown` |
 
 **Returns:** `RunResult`<`A`>
 
@@ -228,7 +229,7 @@ ___
 
 ###  runPromise
 
-▸ **runPromise**(json: *`any`*): `Promise`<`A`>
+▸ **runPromise**(json: *`unknown`*): `Promise`<`A`>
 
 Run the decoder as a `Promise`.
 
@@ -236,7 +237,7 @@ Run the decoder as a `Promise`.
 
 | Param | Type |
 | ------ | ------ |
-| json | `any` |
+| json | `unknown` |
 
 **Returns:** `Promise`<`A`>
 
@@ -245,7 +246,7 @@ ___
 
 ###  runWithException
 
-▸ **runWithException**(json: *`any`*): `A`
+▸ **runWithException**(json: *`unknown`*): `A`
 
 Run the decoder and return the value on success, or throw an exception with a formatted error string.
 
@@ -253,7 +254,7 @@ Run the decoder and return the value on success, or throw an exception with a fo
 
 | Param | Type |
 | ------ | ------ |
-| json | `any` |
+| json | `unknown` |
 
 **Returns:** `A`
 
@@ -299,7 +300,21 @@ ___
 
 ▸ **anyJson**(): [Decoder](_decoder_.decoder.md)<`any`>
 
-Decoder identity function. Useful for incremental decoding.
+Escape hatch to bypass validation. Always succeeds and types the result as `any`. Useful for defining decoders incrementally, particularly for complex objects.
+
+Example:
+
+```
+interface User {
+  name: string;
+  complexUserData: ComplexType;
+}
+
+const userDecoder: Decoder<User> = object({
+  name: string(),
+  complexUserData: anyJson()
+});
+```
 
 **Returns:** [Decoder](_decoder_.decoder.md)<`any`>
 
@@ -308,11 +323,11 @@ ___
 
 ### `<Static>` array
 
-▸ **array**(): [Decoder](_decoder_.decoder.md)<`any`[]>
+▸ **array**(): [Decoder](_decoder_.decoder.md)<`unknown`[]>
 
 ▸ **array**A(decoder: *[Decoder](_decoder_.decoder.md)<`A`>*): [Decoder](_decoder_.decoder.md)<`A`[]>
 
-Decoder for json arrays. Runs `decoder` on each array element, and succeeds if all elements are successfully decoded. If no `decoder` argument is provided then the outer array part of the json is validated but not the contents, typing the result as `any[]`.
+Decoder for json arrays. Runs `decoder` on each array element, and succeeds if all elements are successfully decoded. If no `decoder` argument is provided then the outer array part of the json is validated but not the contents, typing the result as `unknown[]`.
 
 To decode a single value that is inside of an array see `valueAt`.
 
@@ -326,7 +341,7 @@ array(array(boolean())).run([[true], [], [true, false, false]])
 // => {ok: true, result: [[true], [], [true, false, false]]}
 
 const validNumbersDecoder = array()
-  .map((arr: any[]) => arr.map(number().run))
+  .map((arr: unknown[]) => arr.map(number().run))
   .map(Result.successes)
 
 validNumbersDecoder.run([1, true, 2, 3, 'five', 4, []])
@@ -339,7 +354,7 @@ validNumbersDecoder.run(false)
 // {ok: false, error: {..., message: "expected an array, got a boolean"}}
 ```
 
-**Returns:** [Decoder](_decoder_.decoder.md)<`any`[]>
+**Returns:** [Decoder](_decoder_.decoder.md)<`unknown`[]>
 
 **Type parameters:**
 
@@ -735,7 +750,7 @@ ___
 
 ▸ **object**A(decoders: *[DecoderObject](../modules/_decoder_.md#decoderobject)<`A`>*): [Decoder](_decoder_.decoder.md)<`A`>
 
-An higher-order decoder that runs decoders on specified fields of an object, and returns a new object with those fields. If `object` is called with no arguments, then the outer object part of the json is validated but not the contents, typing the result as a dictionary where all keys have a value of type `any`.
+An higher-order decoder that runs decoders on specified fields of an object, and returns a new object with those fields. If `object` is called with no arguments, then the outer object part of the json is validated but not the contents, typing the result as a dictionary where all keys have a value of type `unknown`.
 
 The `optional` and `constant` decoders are particularly useful for decoding objects that match typescript interfaces.
 
@@ -1022,6 +1037,17 @@ const oneOfDecoder: Decoder<C> = oneOf(object<C>({a: string()}), object<C>({b: n
 | hd | [Decoder](_decoder_.decoder.md)<`H`> |
 
 **Returns:** [Decoder](_decoder_.decoder.md)< `A` &#124; `B` &#124; `C` &#124; `D` &#124; `E` &#124; `F` &#124; `G` &#124; `H`>
+
+___
+<a id="unknownjson"></a>
+
+### `<Static>` unknownJson
+
+▸ **unknownJson**(): [Decoder](_decoder_.decoder.md)<`unknown`>
+
+Decoder identity function which always succeeds and types the result as `unknown`.
+
+**Returns:** [Decoder](_decoder_.decoder.md)<`unknown`>
 
 ___
 <a id="valueat"></a>
