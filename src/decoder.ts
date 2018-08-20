@@ -131,6 +131,9 @@ const prependAt = (newAt: string, {at, ...rest}: Partial<DecoderError>): Partial
  * things with a `Result` as with the decoder methods.
  */
 export class Decoder<A> {
+  /**
+   * @hidden
+   */
   readonly _kind = 'Decoder';
 
   /**
@@ -146,6 +149,8 @@ export class Decoder<A> {
    * provided decoder combinators and helper functions such as
    * `andThen` and `map` should be enough to build specialized decoders as
    * needed.
+   *
+   * @hidden
    */
   private constructor(private decode: (json: any) => Result.Result<A, Partial<DecoderError>>) {}
 
@@ -667,8 +672,14 @@ export class Decoder<A> {
  * been marked as optional with the `field?: value` notation.
  */
 export class OptionalDecoder<A> {
+  /**
+   * @hidden
+   */
   readonly _kind = 'OptionalDecoder';
 
+  /**
+   * @hidden
+   */
   private constructor(
     private decode: (json: any) => Result.Result<A | undefined, Partial<DecoderError>>
   ) {}
