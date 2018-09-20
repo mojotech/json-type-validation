@@ -1,5 +1,5 @@
 import * as Result from './result';
-const isEqual = require('lodash/isEqual'); // this syntax avoids TS1192
+const isEqual = require('lodash.isequal'); // this syntax avoids TS1192
 
 /**
  * Information describing how json data failed to match a decoder.
