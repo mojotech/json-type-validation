@@ -14,6 +14,20 @@ export interface DecoderError {
 }
 
 /**
+ * Alias for the result of the `Decoder.run` method. On success returns `Ok`
+ * with the decoded value of type `A`, on failure returns `Err` containing a
+ * `DecoderError`.
+ */
+type RunResult<A> = Result.Result<A, DecoderError>;
+
+/**
+ * Alias for the result of the internal `Decoder.decode` method. Since `decode`
+ * is a private function it returns a partial decoder error on failure, which
+ * will be completed and polished when handed off to the `run` method.
+ */
+type DecodeResult<A> = Result.Result<A, Partial<DecoderError>>;
+
+/**
  * Defines a mapped type over an interface `A`. `DecoderObject<A>` is an
  * interface that has all the keys or `A`, but each key's property type is
  * mapped to a decoder for that type. This type is used when creating decoders
@@ -42,12 +56,6 @@ export type DecoderObject<A> = {[t in keyof A]: Decoder<A[t]>};
  */
 export const isDecoderError = (a: any): a is DecoderError =>
   a.kind === 'DecoderError' && typeof a.at === 'string' && typeof a.message === 'string';
-
-/**
- * `DecoderError` information as a formatted string.
- */
-export const decoderErrorString = (error: DecoderError): string =>
-  `Input: ${JSON.stringify(error.input)}\nFailed at ${error.at}: ${error.message}`;
 
 /*
  * Helpers
@@ -126,7 +134,7 @@ export class Decoder<A> {
    * `andThen` and `map` should be enough to build specialized decoders as
    * needed.
    */
-  private constructor(private decode: (json: any) => Result.Result<A, Partial<DecoderError>>) {}
+  private constructor(private decode: (json: any) => DecodeResult<A>) {}
 
   /**
    * Decoder primitive that validates strings, and fails on all other input.
@@ -166,16 +174,6 @@ export class Decoder<A> {
 
   /**
    * Decoder identity function. Useful for incremental decoding.
-   *
-   * Example:
-   * ```
-   * const json: any = [1, true, 2, 3, 'five', 4, []];
-   * const jsonArray: any[] = Result.withDefault([], array(anyJson()).run(json));
-   * const numbers: number[] = Result.successes(jsonArray.map(number().run));
-   *
-   * numbers
-   * // => [1, 2, 3, 4]
-   * ```
    */
   static anyJson = (): Decoder<any> => new Decoder<any>((json: any) => Result.ok(json));
 
@@ -261,7 +259,10 @@ export class Decoder<A> {
 
   /**
    * An higher-order decoder that runs decoders on specified fields of an object,
-   * and returns a new object with those fields.
+   * and returns a new object with those fields. If `object` is called with no
+   * arguments, then the outer object part of the json is validated but not the
+   * contents, typing the result as a dictionary where all keys have a value of
+   * type `any`.
    *
    * The `optional` and `constant` decoders are particularly useful for decoding
    * objects that match typescript interfaces.
@@ -272,11 +273,16 @@ export class Decoder<A> {
    * ```
    * object({x: number(), y: number()}).run({x: 5, y: 10})
    * // => {ok: true, result: {x: 5, y: 10}}
+   *
+   * object().map(Object.keys).run({n: 1, i: [], c: {}, e: 'e'})
+   * // => {ok: true, result: ['n', 'i', 'c', 'e']}
    * ```
    */
-  static object<A>(decoders: DecoderObject<A>): Decoder<A> {
-    return new Decoder<A>((json: any) => {
-      if (isJsonObject(json)) {
+  static object(): Decoder<{[key: string]: any}>;
+  static object<A>(decoders: DecoderObject<A>): Decoder<A>;
+  static object<A>(decoders?: DecoderObject<A>) {
+    return new Decoder((json: any) => {
+      if (isJsonObject(json) && decoders) {
         let obj: any = {};
         for (const key in decoders) {
           if (decoders.hasOwnProperty(key)) {
@@ -294,6 +300,8 @@ export class Decoder<A> {
           }
         }
         return Result.ok(obj);
+      } else if (isJsonObject(json)) {
+        return Result.ok(json);
       } else {
         return Result.err({message: expectedGot('an object', json)});
       }
@@ -302,7 +310,9 @@ export class Decoder<A> {
 
   /**
    * Decoder for json arrays. Runs `decoder` on each array element, and succeeds
-   * if all elements are successfully decoded.
+   * if all elements are successfully decoded. If no `decoder` argument is
+   * provided then the outer array part of the json is validated but not the
+   * contents, typing the result as `any[]`.
    *
    * To decode a single value that is inside of an array see `valueAt`.
    *
@@ -313,25 +323,42 @@ export class Decoder<A> {
    *
    * array(array(boolean())).run([[true], [], [true, false, false]])
    * // => {ok: true, result: [[true], [], [true, false, false]]}
+   *
+   *
+   * const validNumbersDecoder = array()
+   *   .map((arr: any[]) => arr.map(number().run))
+   *   .map(Result.successes)
+   *
+   * validNumbersDecoder.run([1, true, 2, 3, 'five', 4, []])
+   * // {ok: true, result: [1, 2, 3, 4]}
+   *
+   * validNumbersDecoder.run([false, 'hi', {}])
+   * // {ok: true, result: []}
+   *
+   * validNumbersDecoder.run(false)
+   * // {ok: false, error: {..., message: "expected an array, got a boolean"}}
    * ```
    */
-  static array = <A>(decoder: Decoder<A>): Decoder<A[]> =>
-    new Decoder<A[]>(json => {
-      if (isJsonArray(json)) {
-        let arr: A[] = [];
-        for (let i = 0; i < json.length; i++) {
-          const r = decoder.decode(json[i]);
-          if (r.ok === true) {
-            arr.push(r.result);
-          } else {
-            return Result.err(prependAt(`[${i}]`, r.error));
-          }
-        }
-        return Result.ok(arr);
+  static array(): Decoder<any[]>;
+  static array<A>(decoder: Decoder<A>): Decoder<A[]>;
+  static array<A>(decoder?: Decoder<A>) {
+    return new Decoder(json => {
+      if (isJsonArray(json) && decoder) {
+        const decodeValue = (v: any, i: number): DecodeResult<A> =>
+          Result.mapError(err => prependAt(`[${i}]`, err), decoder.decode(v));
+
+        return json.reduce(
+          (acc: DecodeResult<A[]>, v: any, i: number) =>
+            Result.map2((arr, result) => [...arr, result], acc, decodeValue(v, i)),
+          Result.ok([])
+        );
+      } else if (isJsonArray(json)) {
+        return Result.ok(json);
       } else {
         return Result.err({message: expectedGot('an array', json)});
       }
     });
+  }
 
   /**
    * Decoder for json objects where the keys are unknown strings, but the values
@@ -443,6 +470,41 @@ export class Decoder<A> {
   static union <A, B, C, D, E, F, G, H>(ad: Decoder<A>, bd: Decoder<B>, cd: Decoder<C>, dd: Decoder<D>, ed: Decoder<E>, fd: Decoder<F>, gd: Decoder<G>, hd: Decoder<H>): Decoder<A | B | C | D | E | F | G | H>; // prettier-ignore
   static union(ad: Decoder<any>, bd: Decoder<any>, ...decoders: Decoder<any>[]): Decoder<any> {
     return Decoder.oneOf(ad, bd, ...decoders);
+  }
+
+  /**
+   * Combines 2-8 object decoders into a decoder for the intersection of all the objects.
+   *
+   * Example:
+   * ```
+   * interface Pet {
+   *   name: string;
+   *   maxLegs: number;
+   * }
+   *
+   * interface Cat extends Pet {
+   *   evil: boolean;
+   * }
+   *
+   * const petDecoder: Decoder<Pet> = object({name: string(), maxLegs: number()});
+   * const catDecoder: Decoder<Cat> = intersection(petDecoder, object({evil: boolean()}));
+   * ```
+   */
+  static intersection <A, B>(ad: Decoder<A>, bd: Decoder<B>): Decoder<A & B>; // prettier-ignore
+  static intersection <A, B, C>(ad: Decoder<A>, bd: Decoder<B>, cd: Decoder<C>): Decoder<A & B & C>; // prettier-ignore
+  static intersection <A, B, C, D>(ad: Decoder<A>, bd: Decoder<B>, cd: Decoder<C>, dd: Decoder<D>): Decoder<A & B & C & D>; // prettier-ignore
+  static intersection <A, B, C, D, E>(ad: Decoder<A>, bd: Decoder<B>, cd: Decoder<C>, dd: Decoder<D>, ed: Decoder<E>): Decoder<A & B & C & D & E>; // prettier-ignore
+  static intersection <A, B, C, D, E, F>(ad: Decoder<A>, bd: Decoder<B>, cd: Decoder<C>, dd: Decoder<D>, ed: Decoder<E>, fd: Decoder<F>): Decoder<A & B & C & D & E & F>; // prettier-ignore
+  static intersection <A, B, C, D, E, F, G>(ad: Decoder<A>, bd: Decoder<B>, cd: Decoder<C>, dd: Decoder<D>, ed: Decoder<E>, fd: Decoder<F>, gd: Decoder<G>): Decoder<A & B & C & D & E & F & G>; // prettier-ignore
+  static intersection <A, B, C, D, E, F, G, H>(ad: Decoder<A>, bd: Decoder<B>, cd: Decoder<C>, dd: Decoder<D>, ed: Decoder<E>, fd: Decoder<F>, gd: Decoder<G>, hd: Decoder<H>): Decoder<A & B & C & D & E & F & G & H>; // prettier-ignore
+  static intersection(ad: Decoder<any>, bd: Decoder<any>, ...ds: Decoder<any>[]): Decoder<any> {
+    return new Decoder((json: any) =>
+      [ad, bd, ...ds].reduce(
+        (acc: Result.Result<any, Partial<DecoderError>>, decoder) =>
+          Result.map2(Object.assign, acc, decoder.decode(json)),
+        Result.ok({})
+      )
+    );
   }
 
   /**
@@ -577,7 +639,7 @@ export class Decoder<A> {
    * // }
    * ```
    */
-  run = (json: any): Result.Result<A, DecoderError> =>
+  run = (json: any): RunResult<A> =>
     Result.mapError(
       error => ({
         kind: 'DecoderError' as 'DecoderError',
@@ -597,8 +659,7 @@ export class Decoder<A> {
    * Run the decoder and return the value on success, or throw an exception
    * with a formatted error string.
    */
-  runWithException = (json: any): A =>
-    Result.withException(Result.mapError(decoderErrorString, this.run(json)));
+  runWithException = (json: any): A => Result.withException(this.run(json));
 
   /**
    * Construct a new decoder that applies a transformation to the decoded

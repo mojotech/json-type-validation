@@ -39,6 +39,7 @@ Alternatively, the main decoder `run()` method returns an object of type `Result
 * [constant](_decoder_.decoder.md#constant)
 * [dict](_decoder_.decoder.md#dict)
 * [fail](_decoder_.decoder.md#fail)
+* [intersection](_decoder_.decoder.md#intersection)
 * [lazy](_decoder_.decoder.md#lazy)
 * [number](_decoder_.decoder.md#number)
 * [object](_decoder_.decoder.md#object)
@@ -83,7 +84,7 @@ ___
 **● decode**: *`function`*
 
 #### Type declaration
-▸(json: *`any`*): `Result.Result`<`A`, `Partial`<[DecoderError](../interfaces/_decoder_.decodererror.md)>>
+▸(json: *`any`*): `DecodeResult`<`A`>
 
 **Parameters:**
 
@@ -91,7 +92,7 @@ ___
 | ------ | ------ |
 | json | `any` |
 
-**Returns:** `Result.Result`<`A`, `Partial`<[DecoderError](../interfaces/_decoder_.decodererror.md)>>
+**Returns:** `DecodeResult`<`A`>
 
 ___
 
@@ -178,7 +179,7 @@ ___
 
 ###  run
 
-▸ **run**(json: *`any`*): `Result.Result`<`A`, [DecoderError](../interfaces/_decoder_.decodererror.md)>
+▸ **run**(json: *`any`*): `RunResult`<`A`>
 
 Run the decoder and return a `Result` with either the decoded value or a `DecoderError` containing the json input, the location of the error, and the error message.
 
@@ -207,7 +208,7 @@ string().run(9001)
 | ------ | ------ |
 | json | `any` |
 
-**Returns:** `Result.Result`<`A`, [DecoderError](../interfaces/_decoder_.decodererror.md)>
+**Returns:** `RunResult`<`A`>
 
 ___
 <a id="runpromise"></a>
@@ -252,17 +253,6 @@ ___
 
 Decoder identity function. Useful for incremental decoding.
 
-Example:
-
-```
-const json: any = [1, true, 2, 3, 'five', 4, []];
-const jsonArray: any[] = Result.withDefault([], array(anyJson()).run(json));
-const numbers: number[] = Result.successes(jsonArray.map(number().run));
-
-numbers
-// => [1, 2, 3, 4]
-```
-
 **Returns:** [Decoder](_decoder_.decoder.md)<`any`>
 
 ___
@@ -270,9 +260,11 @@ ___
 
 ### `<Static>` array
 
+▸ **array**(): [Decoder](_decoder_.decoder.md)<`any`[]>
+
 ▸ **array**A(decoder: *[Decoder](_decoder_.decoder.md)<`A`>*): [Decoder](_decoder_.decoder.md)<`A`[]>
 
-Decoder for json arrays. Runs `decoder` on each array element, and succeeds if all elements are successfully decoded.
+Decoder for json arrays. Runs `decoder` on each array element, and succeeds if all elements are successfully decoded. If no `decoder` argument is provided then the outer array part of the json is validated but not the contents, typing the result as `any[]`.
 
 To decode a single value that is inside of an array see `valueAt`.
 
@@ -284,7 +276,22 @@ array(number()).run([1, 2, 3])
 
 array(array(boolean())).run([[true], [], [true, false, false]])
 // => {ok: true, result: [[true], [], [true, false, false]]}
+
+const validNumbersDecoder = array()
+  .map((arr: any[]) => arr.map(number().run))
+  .map(Result.successes)
+
+validNumbersDecoder.run([1, true, 2, 3, 'five', 4, []])
+// {ok: true, result: [1, 2, 3, 4]}
+
+validNumbersDecoder.run([false, 'hi', {}])
+// {ok: true, result: []}
+
+validNumbersDecoder.run(false)
+// {ok: false, error: {..., message: "expected an array, got a boolean"}}
 ```
+
+**Returns:** [Decoder](_decoder_.decoder.md)<`any`[]>
 
 **Type parameters:**
 
@@ -457,6 +464,176 @@ Decoder that ignores the input json and always fails with `errorMessage`.
 **Returns:** [Decoder](_decoder_.decoder.md)<`A`>
 
 ___
+<a id="intersection"></a>
+
+### `<Static>` intersection
+
+▸ **intersection**A,B(ad: *[Decoder](_decoder_.decoder.md)<`A`>*, bd: *[Decoder](_decoder_.decoder.md)<`B`>*): [Decoder](_decoder_.decoder.md)< `A` & `B`>
+
+▸ **intersection**A,B,C(ad: *[Decoder](_decoder_.decoder.md)<`A`>*, bd: *[Decoder](_decoder_.decoder.md)<`B`>*, cd: *[Decoder](_decoder_.decoder.md)<`C`>*): [Decoder](_decoder_.decoder.md)< `A` & `B` & `C`>
+
+▸ **intersection**A,B,C,D(ad: *[Decoder](_decoder_.decoder.md)<`A`>*, bd: *[Decoder](_decoder_.decoder.md)<`B`>*, cd: *[Decoder](_decoder_.decoder.md)<`C`>*, dd: *[Decoder](_decoder_.decoder.md)<`D`>*): [Decoder](_decoder_.decoder.md)< `A` & `B` & `C` & `D`>
+
+▸ **intersection**A,B,C,D,E(ad: *[Decoder](_decoder_.decoder.md)<`A`>*, bd: *[Decoder](_decoder_.decoder.md)<`B`>*, cd: *[Decoder](_decoder_.decoder.md)<`C`>*, dd: *[Decoder](_decoder_.decoder.md)<`D`>*, ed: *[Decoder](_decoder_.decoder.md)<`E`>*): [Decoder](_decoder_.decoder.md)< `A` & `B` & `C` & `D` & `E`>
+
+▸ **intersection**A,B,C,D,E,F(ad: *[Decoder](_decoder_.decoder.md)<`A`>*, bd: *[Decoder](_decoder_.decoder.md)<`B`>*, cd: *[Decoder](_decoder_.decoder.md)<`C`>*, dd: *[Decoder](_decoder_.decoder.md)<`D`>*, ed: *[Decoder](_decoder_.decoder.md)<`E`>*, fd: *[Decoder](_decoder_.decoder.md)<`F`>*): [Decoder](_decoder_.decoder.md)< `A` & `B` & `C` & `D` & `E` & `F`>
+
+▸ **intersection**A,B,C,D,E,F,G(ad: *[Decoder](_decoder_.decoder.md)<`A`>*, bd: *[Decoder](_decoder_.decoder.md)<`B`>*, cd: *[Decoder](_decoder_.decoder.md)<`C`>*, dd: *[Decoder](_decoder_.decoder.md)<`D`>*, ed: *[Decoder](_decoder_.decoder.md)<`E`>*, fd: *[Decoder](_decoder_.decoder.md)<`F`>*, gd: *[Decoder](_decoder_.decoder.md)<`G`>*): [Decoder](_decoder_.decoder.md)< `A` & `B` & `C` & `D` & `E` & `F` & `G`>
+
+▸ **intersection**A,B,C,D,E,F,G,H(ad: *[Decoder](_decoder_.decoder.md)<`A`>*, bd: *[Decoder](_decoder_.decoder.md)<`B`>*, cd: *[Decoder](_decoder_.decoder.md)<`C`>*, dd: *[Decoder](_decoder_.decoder.md)<`D`>*, ed: *[Decoder](_decoder_.decoder.md)<`E`>*, fd: *[Decoder](_decoder_.decoder.md)<`F`>*, gd: *[Decoder](_decoder_.decoder.md)<`G`>*, hd: *[Decoder](_decoder_.decoder.md)<`H`>*): [Decoder](_decoder_.decoder.md)< `A` & `B` & `C` & `D` & `E` & `F` & `G` & `H`>
+
+Combines 2-8 object decoders into a decoder for the intersection of all the objects.
+
+Example:
+
+```
+interface Pet {
+  name: string;
+  maxLegs: number;
+}
+
+interface Cat extends Pet {
+  evil: boolean;
+}
+
+const petDecoder: Decoder<Pet> = object({name: string(), maxLegs: number()});
+const catDecoder: Decoder<Cat> = intersection(petDecoder, object({evil: boolean()}));
+```
+
+**Type parameters:**
+
+#### A 
+#### B 
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| ad | [Decoder](_decoder_.decoder.md)<`A`> |
+| bd | [Decoder](_decoder_.decoder.md)<`B`> |
+
+**Returns:** [Decoder](_decoder_.decoder.md)< `A` & `B`>
+
+**Type parameters:**
+
+#### A 
+#### B 
+#### C 
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| ad | [Decoder](_decoder_.decoder.md)<`A`> |
+| bd | [Decoder](_decoder_.decoder.md)<`B`> |
+| cd | [Decoder](_decoder_.decoder.md)<`C`> |
+
+**Returns:** [Decoder](_decoder_.decoder.md)< `A` & `B` & `C`>
+
+**Type parameters:**
+
+#### A 
+#### B 
+#### C 
+#### D 
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| ad | [Decoder](_decoder_.decoder.md)<`A`> |
+| bd | [Decoder](_decoder_.decoder.md)<`B`> |
+| cd | [Decoder](_decoder_.decoder.md)<`C`> |
+| dd | [Decoder](_decoder_.decoder.md)<`D`> |
+
+**Returns:** [Decoder](_decoder_.decoder.md)< `A` & `B` & `C` & `D`>
+
+**Type parameters:**
+
+#### A 
+#### B 
+#### C 
+#### D 
+#### E 
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| ad | [Decoder](_decoder_.decoder.md)<`A`> |
+| bd | [Decoder](_decoder_.decoder.md)<`B`> |
+| cd | [Decoder](_decoder_.decoder.md)<`C`> |
+| dd | [Decoder](_decoder_.decoder.md)<`D`> |
+| ed | [Decoder](_decoder_.decoder.md)<`E`> |
+
+**Returns:** [Decoder](_decoder_.decoder.md)< `A` & `B` & `C` & `D` & `E`>
+
+**Type parameters:**
+
+#### A 
+#### B 
+#### C 
+#### D 
+#### E 
+#### F 
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| ad | [Decoder](_decoder_.decoder.md)<`A`> |
+| bd | [Decoder](_decoder_.decoder.md)<`B`> |
+| cd | [Decoder](_decoder_.decoder.md)<`C`> |
+| dd | [Decoder](_decoder_.decoder.md)<`D`> |
+| ed | [Decoder](_decoder_.decoder.md)<`E`> |
+| fd | [Decoder](_decoder_.decoder.md)<`F`> |
+
+**Returns:** [Decoder](_decoder_.decoder.md)< `A` & `B` & `C` & `D` & `E` & `F`>
+
+**Type parameters:**
+
+#### A 
+#### B 
+#### C 
+#### D 
+#### E 
+#### F 
+#### G 
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| ad | [Decoder](_decoder_.decoder.md)<`A`> |
+| bd | [Decoder](_decoder_.decoder.md)<`B`> |
+| cd | [Decoder](_decoder_.decoder.md)<`C`> |
+| dd | [Decoder](_decoder_.decoder.md)<`D`> |
+| ed | [Decoder](_decoder_.decoder.md)<`E`> |
+| fd | [Decoder](_decoder_.decoder.md)<`F`> |
+| gd | [Decoder](_decoder_.decoder.md)<`G`> |
+
+**Returns:** [Decoder](_decoder_.decoder.md)< `A` & `B` & `C` & `D` & `E` & `F` & `G`>
+
+**Type parameters:**
+
+#### A 
+#### B 
+#### C 
+#### D 
+#### E 
+#### F 
+#### G 
+#### H 
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| ad | [Decoder](_decoder_.decoder.md)<`A`> |
+| bd | [Decoder](_decoder_.decoder.md)<`B`> |
+| cd | [Decoder](_decoder_.decoder.md)<`C`> |
+| dd | [Decoder](_decoder_.decoder.md)<`D`> |
+| ed | [Decoder](_decoder_.decoder.md)<`E`> |
+| fd | [Decoder](_decoder_.decoder.md)<`F`> |
+| gd | [Decoder](_decoder_.decoder.md)<`G`> |
+| hd | [Decoder](_decoder_.decoder.md)<`H`> |
+
+**Returns:** [Decoder](_decoder_.decoder.md)< `A` & `B` & `C` & `D` & `E` & `F` & `G` & `H`>
+
+___
 <a id="lazy"></a>
 
 ### `<Static>` lazy
@@ -506,9 +683,11 @@ ___
 
 ### `<Static>` object
 
+▸ **object**(): [Decoder](_decoder_.decoder.md)<`object`>
+
 ▸ **object**A(decoders: *[DecoderObject](../modules/_decoder_.md#decoderobject)<`A`>*): [Decoder](_decoder_.decoder.md)<`A`>
 
-An higher-order decoder that runs decoders on specified fields of an object, and returns a new object with those fields.
+An higher-order decoder that runs decoders on specified fields of an object, and returns a new object with those fields. If `object` is called with no arguments, then the outer object part of the json is validated but not the contents, typing the result as a dictionary where all keys have a value of type `any`.
 
 The `optional` and `constant` decoders are particularly useful for decoding objects that match typescript interfaces.
 
@@ -519,7 +698,12 @@ Example:
 ```
 object({x: number(), y: number()}).run({x: 5, y: 10})
 // => {ok: true, result: {x: 5, y: 10}}
+
+object().map(Object.keys).run({n: 1, i: [], c: {}, e: 'e'})
+// => {ok: true, result: ['n', 'i', 'c', 'e']}
 ```
+
+**Returns:** [Decoder](_decoder_.decoder.md)<`object`>
 
 **Type parameters:**
 

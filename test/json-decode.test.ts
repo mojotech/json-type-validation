@@ -13,6 +13,7 @@ import {
   optional,
   oneOf,
   union,
+  intersection,
   withDefault,
   valueAt,
   succeed,
@@ -252,6 +253,15 @@ describe('object', () => {
     expect(decoder.run({a: 12, b: 'hats'})).toEqual({ok: true, result: {a: 12, b: 'hats'}});
     expect(decoder.run({a: 12})).toEqual({ok: true, result: {a: 12}});
   });
+
+  it('decodes any object when the object shape is not specified', () => {
+    const objectKeysDecoder: Decoder<string[]> = object().map(Object.keys);
+
+    expect(objectKeysDecoder.run({n: 1, i: [], c: {}, e: 'e'})).toEqual({
+      ok: true,
+      result: ['n', 'i', 'c', 'e']
+    });
+  });
 });
 
 describe('array', () => {
@@ -283,6 +293,24 @@ describe('array', () => {
         ok: false,
         error: {at: 'input[2][0][3]', message: 'expected a number, got a boolean'}
       });
+    });
+  });
+
+  it('decodes any array when the array members decoder is not specified', () => {
+    const validNumbersDecoder = array()
+      .map((arr: any[]) => arr.map(number().run))
+      .map(Result.successes);
+
+    expect(validNumbersDecoder.run([1, true, 2, 3, 'five', 4, []])).toEqual({
+      ok: true,
+      result: [1, 2, 3, 4]
+    });
+
+    expect(validNumbersDecoder.run([false, 'hi', {}])).toEqual({ok: true, result: []});
+
+    expect(validNumbersDecoder.run(false)).toMatchObject({
+      ok: false,
+      error: {message: 'expected an array, got a boolean'}
     });
   });
 });
@@ -468,6 +496,47 @@ describe('union', () => {
           'expected a value matching one of the decoders, got the errors ' +
           '["at error.kind: expected "a", got "b"", "at error.value: expected a boolean, got a number"]'
       }
+    });
+  });
+});
+
+describe('intersection', () => {
+  it('uses two decoders to decode an extended interface', () => {
+    interface A {
+      a: number;
+    }
+
+    interface AB extends A {
+      b: string;
+    }
+
+    const aDecoder: Decoder<A> = object({a: number()});
+    const abDecoder: Decoder<AB> = intersection(aDecoder, object({b: string()}));
+
+    expect(abDecoder.run({a: 12, b: '!!!'})).toEqual({ok: true, result: {a: 12, b: '!!!'}});
+  });
+
+  it('can combine many decoders', () => {
+    interface UVWXYZ {
+      u: true;
+      v: string[];
+      w: boolean | null;
+      x: number;
+      y: string;
+      z: boolean;
+    }
+
+    const uvwxyzDecoder: Decoder<UVWXYZ> = intersection(
+      object({u: constant(true)}),
+      object({v: array(string())}),
+      object({w: union(boolean(), constant(null))}),
+      object({x: number()}),
+      object({y: string(), z: boolean()})
+    );
+
+    expect(uvwxyzDecoder.run({u: true, v: [], w: null, x: 4, y: 'y', z: false})).toEqual({
+      ok: true,
+      result: {u: true, v: [], w: null, x: 4, y: 'y', z: false}
     });
   });
 });
@@ -682,9 +751,20 @@ describe('runWithException', () => {
   });
 
   it('throws an exception when the decoder fails', () => {
-    expect(() => decoder.runWithException(42)).toThrowError(
-      'Input: 42\nFailed at input: expected a boolean, got a number'
-    );
+    let thrownError: any;
+
+    try {
+      decoder.runWithException(42);
+    } catch (e) {
+      thrownError = e;
+    }
+
+    expect(thrownError).toEqual({
+      kind: 'DecoderError',
+      input: 42,
+      at: 'input',
+      message: 'expected a boolean, got a number'
+    });
   });
 });
 
