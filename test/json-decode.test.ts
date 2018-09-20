@@ -826,6 +826,70 @@ describe('andThen', () => {
       });
     });
   });
+
+  it('creates decoders for custom types', () => {
+    type NonEmptyArray<T> = T[] & {__nonEmptyArrayBrand__: void};
+    const createNonEmptyArray = <T>(arr: T[]): NonEmptyArray<T> => arr as NonEmptyArray<T>;
+
+    const nonEmptyArrayDecoder = <T>(values: Decoder<T>): Decoder<NonEmptyArray<T>> =>
+      array(values).andThen(
+        arr =>
+          arr.length > 0
+            ? succeed(createNonEmptyArray(arr))
+            : fail(`expected a non-empty array, got an empty array`)
+      );
+
+    expect(nonEmptyArrayDecoder(number()).run([1, 2, 3])).toEqual({
+      ok: true,
+      result: [1, 2, 3]
+    });
+
+    expect(nonEmptyArrayDecoder(number()).run([])).toMatchObject({
+      ok: false,
+      error: {message: 'expected a non-empty array, got an empty array'}
+    });
+  });
+});
+
+describe('where', () => {
+  const chars = (length: number): Decoder<string> =>
+    string().where((s: string) => s.length === length, `expected a string of length ${length}`);
+
+  const range = (min: number, max: number): Decoder<number> =>
+    number().where(
+      (n: number) => n >= min && n <= max,
+      `expected a number between ${min} and ${max}`
+    );
+
+  it('can test for strings of a given length', () => {
+    expect(chars(7).run('7777777')).toEqual({ok: true, result: '7777777'});
+
+    expect(chars(7).run('666666')).toMatchObject({
+      ok: false,
+      error: {message: 'expected a string of length 7'}
+    });
+  });
+
+  it('can test for numbers in a given range', () => {
+    expect(range(1, 9).run(7)).toEqual({ok: true, result: 7});
+
+    expect(range(1, 9).run(12)).toMatchObject({
+      ok: false,
+      error: {message: 'expected a number between 1 and 9'}
+    });
+  });
+
+  it('reports when the base decoder fails', () => {
+    expect(chars(7).run(false)).toMatchObject({
+      ok: false,
+      error: {message: 'expected a string, got a boolean'}
+    });
+
+    expect(range(0, 1).run(null)).toMatchObject({
+      ok: false,
+      error: {message: 'expected a number, got null'}
+    });
+  });
 });
 
 describe('Result', () => {
