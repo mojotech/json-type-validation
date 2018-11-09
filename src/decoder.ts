@@ -49,6 +49,11 @@ type DecodeResult<A> = Result.Result<A, Partial<DecoderError>>;
 export type DecoderObject<A> = {[t in keyof A]: Decoder<A[t]>};
 
 /**
+ * A base enum type so that the `enums` decoder can be accurately typed
+ */
+enum Enum {}
+
+/**
  * Type guard for `DecoderError`. One use case of the type guard is in the
  * `catch` of a promise. Typescript types the error argument of `catch` as
  * `any`, so when dealing with a decoder as a promise you may need to
@@ -388,6 +393,13 @@ export class Decoder<A> {
       } else {
         return Result.err({message: expectedGot('an object', json)});
       }
+    });
+
+  static enums = <E extends typeof Enum>(enumObject: E): Decoder<E> =>
+    new Decoder<E>((json: any) => {
+      const keys: string[] = Object.keys(enumObject).filter((k: string) => /^\D+$/.test(k));
+      const match = keys.find((k: string) => json === enumObject[k as any]);
+      return match ? Result.ok((enumObject[match as any] as any) as E) : Result.err({message: ''});
     });
 
   /**

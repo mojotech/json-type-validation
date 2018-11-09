@@ -12,6 +12,7 @@ export {
   object,
   array,
   dict,
+  enums,
   optional,
   oneOf,
   union,

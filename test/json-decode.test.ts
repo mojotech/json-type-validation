@@ -10,6 +10,7 @@ import {
   object,
   array,
   dict,
+  enums,
   optional,
   oneOf,
   union,
@@ -358,6 +359,36 @@ describe('dict', () => {
         result: {hey: 'there!', yo: 'dude!'}
       });
     });
+  });
+});
+
+describe('enums', () => {
+  enum Directions1 {
+    N,
+    S,
+    E,
+    W
+  }
+  enum Directions2 {
+    N = 'North',
+    S = 'South',
+    E = 'East',
+    W = 'West'
+  }
+  enum Directions3 {
+    N = 10,
+    S,
+    E = 20,
+    W
+  }
+  enum Directions4 {
+    N = 'n',
+    S = 5,
+    E = '4',
+    W = '1e10'
+  }
+  it('', () => {
+    expect(enums(Directions1).run(3)).toEqual({ok: true, result: Directions1.W});
   });
 });
 

@@ -26,6 +26,9 @@ export const array = Decoder.array;
 /** See `Decoder.dict` */
 export const dict = Decoder.dict;
 
+/** See `Decoder.enums` */
+export const enums = Decoder.enums;
+
 /** See `Decoder.optional` */
 export const optional = Decoder.optional;
 
