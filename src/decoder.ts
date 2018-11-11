@@ -48,10 +48,7 @@ type DecodeResult<A> = Result.Result<A, Partial<DecoderError>>;
  */
 export type DecoderObject<A> = {[t in keyof A]: Decoder<A[t]>};
 
-/**
- * A base enum type so that the `enums` decoder can be accurately typed
- */
-enum Enum {}
+type Enum = object & {[x: number]: string};
 
 /**
  * Type guard for `DecoderError`. One use case of the type guard is in the
@@ -395,11 +392,15 @@ export class Decoder<A> {
       }
     });
 
-  static enums = <E extends typeof Enum>(enumObject: E): Decoder<E> =>
-    new Decoder<E>((json: any) => {
-      const keys: string[] = Object.keys(enumObject).filter((k: string) => /^\D+$/.test(k));
-      const match = keys.find((k: string) => json === enumObject[k as any]);
-      return match ? Result.ok((enumObject[match as any] as any) as E) : Result.err({message: ''});
+  /**
+   *
+   */
+  static enums = <Enum, EnumValue extends (string | number) & keyof Enum>(
+    ...enumValues: Array<EnumValue>
+  ): Decoder<Enum> =>
+    new Decoder<Enum>((json: any) => {
+      const match = enumValues.find((ev: string | number) => json === ev);
+      return match ? Result.ok((match as any) as Enum) : Result.err({message: ''});
     });
 
   /**

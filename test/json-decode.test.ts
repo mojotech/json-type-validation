@@ -363,32 +363,136 @@ describe('dict', () => {
 });
 
 describe('enums', () => {
-  enum Directions1 {
-    N,
-    S,
-    E,
-    W
-  }
-  enum Directions2 {
-    N = 'North',
-    S = 'South',
-    E = 'East',
-    W = 'West'
-  }
-  enum Directions3 {
-    N = 10,
-    S,
-    E = 20,
-    W
-  }
-  enum Directions4 {
-    N = 'n',
-    S = 5,
-    E = '4',
-    W = '1e10'
-  }
-  it('', () => {
-    expect(enums(Directions1).run(3)).toEqual({ok: true, result: Directions1.W});
+  describe('decoder enums with auto-assigned indices', () => {
+    enum Directions1 {
+      N,
+      S,
+      E,
+      W
+    }
+
+    it('succeeds on valid indices', () => {
+      expect(enums(Directions1).run(0)).toEqual({ok: true, result: Directions1.N});
+      expect(enums(Directions1).run(1)).toEqual({ok: true, result: Directions1.S});
+      expect(enums(Directions1).run(2)).toEqual({ok: true, result: Directions1.E});
+      expect(enums(Directions1).run(3)).toEqual({ok: true, result: Directions1.W});
+    });
+
+    it('does not accept invalid indices', () => {
+      expect(enums(Directions1).run(4)).toMatchObject({
+        ok: false,
+        error: {at: 'input', message: ''}
+      });
+    });
+
+    it('does not accept keys as values', () => {
+      expect(enums(Directions1).run('N')).toMatchObject({
+        ok: false,
+        error: {at: 'input', message: ''}
+      });
+    });
+  });
+
+  describe('decodes enums with assigned string values', () => {
+    enum Directions2 {
+      N = 'North',
+      S = 'South',
+      E = 'East',
+      W = 'West'
+    }
+
+    it('succeeds on valid strings', () => {
+      expect(enums(Directions2).run('North')).toEqual({ok: true, result: Directions2.N});
+      expect(enums(Directions2).run('South')).toEqual({ok: true, result: Directions2.S});
+      expect(enums(Directions2).run('East')).toEqual({ok: true, result: Directions2.E});
+      expect(enums(Directions2).run('West')).toEqual({ok: true, result: Directions2.W});
+    });
+
+    it('does not accept number keys', () => {
+      expect(enums(Directions2).run(0)).toMatchObject({
+        ok: false,
+        error: {at: 'input', message: ''}
+      });
+    });
+
+    it('does not accept keys as values', () => {
+      expect(enums(Directions2).run('S')).toMatchObject({
+        ok: false,
+        error: {at: 'input', message: ''}
+      });
+    });
+  });
+
+  describe('decodes enums with assigned number values', () => {
+    enum Directions3 {
+      N = 10,
+      S,
+      E = 20,
+      W
+    }
+
+    it('succeeds on valid indices', () => {
+      expect(enums(Directions3).run(10)).toEqual({ok: true, result: Directions3.N});
+      expect(enums(Directions3).run(11)).toEqual({ok: true, result: Directions3.S});
+      expect(enums(Directions3).run(20)).toEqual({ok: true, result: Directions3.E});
+      expect(enums(Directions3).run(21)).toEqual({ok: true, result: Directions3.W});
+    });
+
+    it('does not accept invalid indices', () => {
+      expect(enums(Directions3).run(12)).toMatchObject({
+        ok: false,
+        error: {at: 'input', message: ''}
+      });
+    });
+  });
+
+  describe('decodes mixed value enums', () => {
+    enum Directions4 {
+      N = 'n',
+      S = 5,
+      E = '4',
+      W = '1e10'
+    }
+    const d4Decoder: Decoder<keyof typeof Directions4> = enums<Directions4>(
+      Directions4.N,
+      Directions4.S
+    );
+    const x: Directions4 = d4Decoder.runWithException('n');
+
+    it('accepts the assigned enum values', () => {
+      expect(enums(Directions4).run('n')).toEqual({ok: true, result: Directions4.N});
+      expect(enums(Directions4).run(5)).toEqual({ok: true, result: Directions4.S});
+      expect(enums(Directions4).run('4')).toEqual({ok: true, result: Directions4.E});
+      expect(enums(Directions4).run('1e10')).toEqual({ok: true, result: Directions4.W});
+    });
+
+    it('does not accept invalid indices', () => {
+      expect(enums(Directions4).run(0)).toMatchObject({
+        ok: false,
+        error: {at: 'input', message: ''}
+      });
+    });
+
+    it('does not accept number values as strings', () => {
+      expect(enums(Directions4).run('5')).toMatchObject({
+        ok: false,
+        error: {at: 'input', message: ''}
+      });
+    });
+
+    it('does not accept string values as numbers', () => {
+      expect(enums(Directions4).run(4)).toMatchObject({
+        ok: false,
+        error: {at: 'input', message: ''}
+      });
+    });
+
+    it('does not accept strings that represent numbers', () => {
+      expect(enums(Directions4).run(Number(1e10))).toMatchObject({
+        ok: false,
+        error: {at: 'input', message: ''}
+      });
+    });
   });
 });
 
