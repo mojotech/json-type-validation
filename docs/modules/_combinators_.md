@@ -21,6 +21,7 @@
 * [string](_combinators_.md#string)
 * [succeed](_combinators_.md#succeed)
 * [union](_combinators_.md#union)
+* [unknownJson](_combinators_.md#unknownjson)
 * [valueAt](_combinators_.md#valueat)
 * [withDefault](_combinators_.md#withdefault)
 
@@ -161,6 +162,20 @@ ___
 **● union**: *[union](../classes/_decoder_.decoder.md#union)* =  Decoder.union
 
 See `Decoder.union`
+
+___
+<a id="unknownjson"></a>
+
+### `<Const>` unknownJson
+
+**● unknownJson**: *`function`* =  Decoder.unknownJson
+
+See `Decoder.unknownJson`
+
+#### Type declaration
+▸(): [Decoder](../classes/_decoder_.decoder.md)<`unknown`>
+
+**Returns:** [Decoder](../classes/_decoder_.decoder.md)<`unknown`>
 
 ___
 <a id="valueat"></a>

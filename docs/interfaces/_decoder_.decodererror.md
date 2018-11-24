@@ -32,7 +32,7 @@ ___
 
 ###  input
 
-**● input**: *`any`*
+**● input**: *`unknown`*
 
 ___
 <a id="kind"></a>

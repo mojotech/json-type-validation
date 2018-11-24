@@ -6,6 +6,7 @@ import {
   number,
   boolean,
   anyJson,
+  unknownJson,
   constant,
   object,
   array,
@@ -95,13 +96,42 @@ describe('boolean', () => {
 });
 
 describe('anyJson', () => {
-  it('can be used in other decoders', () => {
-    const json: any = [1, true, 2, 3, 'five', 4, []];
-    const jsonArray: any[] = Result.withDefault([], array(anyJson()).run(json));
-    const successes: Result.Ok<number>[] = jsonArray.map(number().run).filter(Result.isOk);
-    const numbers: number[] = successes.map(ok => ok.result);
+  it('bypasses type validation', () => {
+    // in a real use case this could be a deeply nested object
+    type ComplexType = number;
 
-    expect(numbers).toEqual([1, 2, 3, 4]);
+    interface User {
+      name: string;
+      complexUserData: ComplexType;
+    }
+
+    const userDecoder: Decoder<User> = object({
+      name: string(),
+      complexUserData: anyJson()
+    });
+
+    expect(userDecoder.run({name: 'Wanda', complexUserData: true})).toEqual({
+      ok: true,
+      result: {name: 'Wanda', complexUserData: true}
+    });
+
+    expect(userDecoder.run({name: 'Willard', complexUserData: 'trash data'})).toEqual({
+      ok: true,
+      result: {name: 'Willard', complexUserData: 'trash data'}
+    });
+
+    expect(userDecoder.run({name: 73, complexUserData: []})).toMatchObject({
+      ok: false,
+      error: {at: 'input.name', message: 'expected a string, got a number'}
+    });
+  });
+});
+
+describe('unknownJson', () => {
+  it('accepts any values', () => {
+    expect(unknownJson().run(1)).toEqual({ok: true, result: 1});
+    expect(unknownJson().run(false)).toEqual({ok: true, result: false});
+    expect(unknownJson().run({boots: 'n cats'})).toEqual({ok: true, result: {boots: 'n cats'}});
   });
 });
 
@@ -298,7 +328,7 @@ describe('array', () => {
 
   it('decodes any array when the array members decoder is not specified', () => {
     const validNumbersDecoder = array()
-      .map((arr: any[]) => arr.map(number().run))
+      .map((arr: unknown[]) => arr.map(number().run))
       .map(Result.successes);
 
     expect(validNumbersDecoder.run([1, true, 2, 3, 'five', 4, []])).toEqual({
@@ -723,7 +753,7 @@ describe('lazy', () => {
 });
 
 describe('runPromise', () => {
-  const promise = (json: any): Promise<boolean> => boolean().runPromise(json);
+  const promise = (json: unknown): Promise<boolean> => boolean().runPromise(json);
 
   it('resolves the promise when the decoder succeeds', () => {
     return expect(promise(true)).resolves.toBe(true);
@@ -906,8 +936,8 @@ describe('Result', () => {
   });
 
   it('can return successes from an array of decoded values', () => {
-    const json: any = [1, true, 2, 3, 'five', 4, []];
-    const jsonArray: any[] = Result.withDefault([], array(anyJson()).run(json));
+    const json: unknown = [1, true, 2, 3, 'five', 4, []];
+    const jsonArray: unknown[] = Result.withDefault([], array().run(json));
     const numbers: number[] = Result.successes(jsonArray.map(number().run));
 
     expect(numbers).toEqual([1, 2, 3, 4]);

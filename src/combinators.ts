@@ -14,6 +14,9 @@ export const boolean = Decoder.boolean;
 /** See `Decoder.anyJson` */
 export const anyJson = Decoder.anyJson;
 
+/** See `Decoder.unknownJson` */
+export const unknownJson: () => Decoder<unknown> = Decoder.unknownJson;
+
 /** See `Decoder.constant` */
 export const constant = Decoder.constant;
 

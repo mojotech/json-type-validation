@@ -8,6 +8,7 @@ export {
   number,
   boolean,
   anyJson,
+  unknownJson,
   constant,
   object,
   array,
