@@ -62,7 +62,7 @@ export const isDecoderError = (a: any): a is DecoderError =>
  */
 const isJsonArray = (json: any): json is unknown[] => Array.isArray(json);
 
-const isJsonObject = (json: any): json is {[k: string]: unknown} =>
+const isJsonObject = (json: any): json is Record<string, unknown> =>
   typeof json === 'object' && json !== null && !isJsonArray(json);
 
 const typeString = (json: unknown): string => {
@@ -284,7 +284,7 @@ export class Decoder<A> {
    * An higher-order decoder that runs decoders on specified fields of an object,
    * and returns a new object with those fields. If `object` is called with no
    * arguments, then the outer object part of the json is validated but not the
-   * contents, typing the result as a dictionary where all keys have a value of
+   * contents, typing the result as a record where all keys have a value of
    * type `unknown`.
    *
    * The `optional` and `constant` decoders are particularly useful for decoding
@@ -301,7 +301,7 @@ export class Decoder<A> {
    * // => {ok: true, result: ['n', 'i', 'c', 'e']}
    * ```
    */
-  static object(): Decoder<{[key: string]: unknown}>;
+  static object(): Decoder<Record<string, unknown>>;
   static object<A>(decoders: DecoderObject<A>): Decoder<A>;
   static object<A>(decoders?: DecoderObject<A>) {
     return new Decoder((json: unknown) => {
@@ -393,10 +393,10 @@ export class Decoder<A> {
    * // => {ok: true, result: {chocolate: 12, vanilla: 10, mint: 37}}
    * ```
    */
-  static dict = <A>(decoder: Decoder<A>): Decoder<{[name: string]: A}> =>
-    new Decoder<{[name: string]: A}>(json => {
+  static dict = <A>(decoder: Decoder<A>): Decoder<Record<string, A>> =>
+    new Decoder(json => {
       if (isJsonObject(json)) {
-        let obj: {[name: string]: A} = {};
+        let obj: Record<string, A> = {};
         for (const key in json) {
           if (json.hasOwnProperty(key)) {
             const r = decoder.decode(json[key]);
