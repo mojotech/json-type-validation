@@ -384,6 +384,46 @@ export class Decoder<A> {
   }
 
   /**
+   * Decoder for fixed-length arrays, aka Tuples.
+   *
+   * Example:
+   * ```
+   * tuple([number(), number(), string()]).run([5, 10, 'px'])
+   * // => {ok: true, result: [5, 10, 'px']}
+   * ```
+   */
+  // static tuple(): Decoder<MappedTuple<string, unknown>>;
+  static tuple<A>(decoders: DecoderObject<A>): Decoder<A>;
+  static tuple<A>(decoders?: DecoderObject<A>) {
+    return new Decoder((json: unknown) => {
+      // what should this look like?
+      if (isJsonArray(json) && decoders) {
+        let obj: any = {};
+        for (const key in decoders) {
+          if (decoders.hasOwnProperty(key)) {
+            const r = decoders[key].decode(json[key]);
+            if (r.ok === true) {
+              // tslint:disable-next-line:strict-type-predicates
+              if (r.result !== undefined) {
+                obj[key] = r.result;
+              }
+            } else if (json[key] === undefined) {
+              return Result.err({message: `the key '${key}' is required but was not present`});
+            } else {
+              return Result.err(prependAt(`.${key}`, r.error));
+            }
+          }
+        }
+        return Result.ok(obj);
+      } else if (isJsonArray(json)) {
+        return Result.ok(json);
+      } else {
+        return Result.err({message: expectedGot('a fixed-length array', json)});
+      }
+    });
+  }
+
+  /**
    * Decoder for json objects where the keys are unknown strings, but the values
    * should all be of the same type.
    *

@@ -12,6 +12,7 @@ export {
   constant,
   object,
   array,
+  tuple,
   dict,
   optional,
   oneOf,

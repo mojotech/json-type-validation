@@ -18,6 +18,7 @@ import {
   withDefault,
   valueAt,
   succeed,
+  tuple,
   fail,
   lazy
 } from '../src/index';
@@ -343,6 +344,99 @@ describe('array', () => {
       error: {message: 'expected an array, got a boolean'}
     });
   });
+});
+
+describe('tuple', () => {
+  describe('when given valid JSON', () => {
+    it('can decode a simple tuple', () => {
+      const decoder = tuple([number()]);
+
+      expect(decoder.run([5])).toMatchObject({ok: true, result: [5]});
+    });
+
+    // it('can decode a nested object', () => {
+    //   const decoder = object({
+    //     payload: object({x: number(), y: number()}),
+    //     error: constant(false)
+    //   });
+    //   const json = {payload: {x: 5, y: 2}, error: false};
+    //
+    //   expect(decoder.run(json)).toEqual({ok: true, result: json});
+    // });
+  });
+
+  // describe('when given incorrect JSON', () => {
+  //   it('fails when not given an object', () => {
+  //     const decoder = object({x: number()});
+  //
+  //     expect(decoder.run('true')).toMatchObject({
+  //       ok: false,
+  //       error: {at: 'input', message: 'expected an object, got a string'}
+  //     });
+  //   });
+  //
+  //   it('fails when given an array', () => {
+  //     const decoder = object({x: number()});
+  //
+  //     expect(decoder.run([])).toMatchObject({
+  //       ok: false,
+  //       error: {at: 'input', message: 'expected an object, got an array'}
+  //     });
+  //   });
+  //
+  //   it('reports a missing key', () => {
+  //     const decoder = object({x: number()});
+  //
+  //     expect(decoder.run({})).toMatchObject({
+  //       ok: false,
+  //       error: {at: 'input', message: "the key 'x' is required but was not present"}
+  //     });
+  //   });
+  //
+  //   it('reports invalid values', () => {
+  //     const decoder = object({name: string()});
+  //
+  //     expect(decoder.run({name: 5})).toMatchObject({
+  //       ok: false,
+  //       error: {at: 'input.name', message: 'expected a string, got a number'}
+  //     });
+  //   });
+  //
+  //   it('properly displays nested errors', () => {
+  //     const decoder = object({
+  //       hello: object({
+  //         hey: object({
+  //           'Howdy!': string()
+  //         })
+  //       })
+  //     });
+  //
+  //     const error = decoder.run({hello: {hey: {'Howdy!': {}}}});
+  //     expect(error).toMatchObject({
+  //       ok: false,
+  //       error: {at: 'input.hello.hey.Howdy!', message: 'expected a string, got an object'}
+  //     });
+  //   });
+  // });
+  //
+  // it('ignores optional fields that decode to undefined', () => {
+  //   const decoder = object({
+  //     a: number(),
+  //     b: optional(string())
+  //   });
+  //
+  //   expect(decoder.run({a: 12, b: 'hats'})).toEqual({ok: true, result: {a: 12, b: 'hats'}});
+  //   expect(decoder.run({a: 12})).toEqual({ok: true, result: {a: 12}});
+  // });
+  //
+  // it('decodes any object when the object shape is not specified', () => {
+  //   const objectKeysDecoder: Decoder<string[]> = object().map(Object.keys);
+  //
+  //   expect(objectKeysDecoder.run({n: 1, i: [], c: {}, e: 'e'})).toEqual({
+  //     ok: true,
+  //     result: ['n', 'i', 'c', 'e']
+  //   });
+  // });
 });
 
 describe('dict', () => {
