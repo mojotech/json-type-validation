@@ -128,7 +128,7 @@ export class Decoder<A> {
    * `Partial<DecoderError>` on failure, which contains an unfinished error
    * report. When `run` is called on a decoder, the relevant series of `decode`
    * calls is made, and then on failure the resulting `Partial<DecoderError>`
-   * is turned into a `DecoderError` by filling in the missing informaiton.
+   * is turned into a `DecoderError` by filling in the missing information.
    *
    * While hiding the constructor may seem restrictive, leveraging the
    * provided decoder combinators and helper functions such as
