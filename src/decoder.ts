@@ -94,8 +94,11 @@ const expectedGot = (expected: string, got: unknown) =>
 const printPath = (paths: (string | number)[]): string =>
   paths.map(path => (typeof path === 'string' ? `.${path}` : `[${path}]`)).join('');
 
+// Am I misunderstanding the use of `prependAt`? Should it not be necessary to
+// strip 'input' from the previous `at`?
+const inputPrefixRegex = /^input/;
 const prependAt = (newAt: string, {at, ...rest}: Partial<DecoderError>): Partial<DecoderError> => ({
-  at: newAt + (at || ''),
+  at: newAt + (at || '').replace(inputPrefixRegex, ''),
   ...rest
 });
 
@@ -141,11 +144,10 @@ export class Decoder<A> {
    * Decoder primitive that validates strings, and fails on all other input.
    */
   static string(): Decoder<string> {
-    return new Decoder<string>(
-      (json: unknown) =>
-        typeof json === 'string'
-          ? Result.ok(json)
-          : Result.err({message: expectedGot('a string', json)})
+    return new Decoder<string>((json: unknown) =>
+      typeof json === 'string'
+        ? Result.ok(json)
+        : Result.err({message: expectedGot('a string', json)})
     );
   }
 
@@ -153,11 +155,10 @@ export class Decoder<A> {
    * Decoder primitive that validates numbers, and fails on all other input.
    */
   static number(): Decoder<number> {
-    return new Decoder<number>(
-      (json: unknown) =>
-        typeof json === 'number'
-          ? Result.ok(json)
-          : Result.err({message: expectedGot('a number', json)})
+    return new Decoder<number>((json: unknown) =>
+      typeof json === 'number'
+        ? Result.ok(json)
+        : Result.err({message: expectedGot('a number', json)})
     );
   }
 
@@ -165,11 +166,10 @@ export class Decoder<A> {
    * Decoder primitive that validates booleans, and fails on all other input.
    */
   static boolean(): Decoder<boolean> {
-    return new Decoder<boolean>(
-      (json: unknown) =>
-        typeof json === 'boolean'
-          ? Result.ok(json)
-          : Result.err({message: expectedGot('a boolean', json)})
+    return new Decoder<boolean>((json: unknown) =>
+      typeof json === 'boolean'
+        ? Result.ok(json)
+        : Result.err({message: expectedGot('a boolean', json)})
     );
   }
 
@@ -272,11 +272,10 @@ export class Decoder<A> {
   static constant(value: false): Decoder<false>;
   static constant<A>(value: A): Decoder<A>;
   static constant(value: any): Decoder<any> {
-    return new Decoder(
-      (json: unknown) =>
-        isEqual(json, value)
-          ? Result.ok(value)
-          : Result.err({message: `expected ${JSON.stringify(value)}, got ${JSON.stringify(json)}`})
+    return new Decoder((json: unknown) =>
+      isEqual(json, value)
+        ? Result.ok(value)
+        : Result.err({message: `expected ${JSON.stringify(value)}, got ${JSON.stringify(json)}`})
     );
   }
 
@@ -386,35 +385,61 @@ export class Decoder<A> {
   /**
    * Decoder for fixed-length arrays, aka Tuples.
    *
+   * Supports up to 8-tuples.
+   *
    * Example:
    * ```
    * tuple([number(), number(), string()]).run([5, 10, 'px'])
    * // => {ok: true, result: [5, 10, 'px']}
    * ```
    */
-  // static tuple(): Decoder<MappedTuple<string, unknown>>;
-  static tuple<A>(decoders: DecoderObject<A>): Decoder<A>;
-  static tuple<A>(decoders?: DecoderObject<A>) {
+  static tuple<A>(decoder: [Decoder<A>]): Decoder<[A]>;
+  static tuple<A, B>(decoder: [Decoder<A>, Decoder<B>]): Decoder<[A, B]>;
+  static tuple<A, B, C>(decoder: [Decoder<A>, Decoder<B>, Decoder<C>]): Decoder<[A, B, C]>;
+  static tuple<A, B, C, D>(
+    decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>]
+  ): Decoder<[A, B, C, D]>;
+  static tuple<A, B, C, D, E>(
+    decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>, Decoder<E>]
+  ): Decoder<[A, B, C, D, E]>;
+  static tuple<A, B, C, D, E, F>(
+    decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>, Decoder<E>, Decoder<F>]
+  ): Decoder<[A, B, C, D, E, F]>;
+  static tuple<A, B, C, D, E, F, G>(
+    decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>, Decoder<E>, Decoder<F>, Decoder<G>]
+  ): Decoder<[A, B, C, D, E, F, G]>;
+  static tuple<A, B, C, D, E, F, G, H>(
+    decoder: [
+      Decoder<A>,
+      Decoder<B>,
+      Decoder<C>,
+      Decoder<D>,
+      Decoder<E>,
+      Decoder<F>,
+      Decoder<G>,
+      Decoder<H>
+    ]
+  ): Decoder<[A, B, C, D, E, F, G, H]>;
+  static tuple<A>(decoders?: Decoder<A>[]) {
     return new Decoder((json: unknown) => {
-      // what should this look like?
       if (isJsonArray(json) && decoders) {
-        let obj: any = {};
-        for (const key in decoders) {
-          if (decoders.hasOwnProperty(key)) {
-            const r = decoders[key].decode(json[key]);
-            if (r.ok === true) {
-              // tslint:disable-next-line:strict-type-predicates
-              if (r.result !== undefined) {
-                obj[key] = r.result;
-              }
-            } else if (json[key] === undefined) {
-              return Result.err({message: `the key '${key}' is required but was not present`});
-            } else {
-              return Result.err(prependAt(`.${key}`, r.error));
-            }
+        if (json.length !== decoders.length) {
+          return Result.err({
+            message: `expected an array of length ${decoders.length}, got an array of length ${
+              json.length
+            }`
+          });
+        }
+        const result = [];
+        for (let i: number = 0; i < decoders.length; i++) {
+          const nth = decoders[i].run(json[i]);
+          if (nth.ok) {
+            result[i] = nth.result;
+          } else {
+            return Result.err(prependAt(`[${i}]`, nth.error));
           }
         }
-        return Result.ok(obj);
+        return Result.ok(result);
       } else if (isJsonArray(json)) {
         return Result.ok(json);
       } else {
