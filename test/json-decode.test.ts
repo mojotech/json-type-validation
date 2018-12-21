@@ -931,11 +931,10 @@ describe('andThen', () => {
     const createNonEmptyArray = <T>(arr: T[]): NonEmptyArray<T> => arr as NonEmptyArray<T>;
 
     const nonEmptyArrayDecoder = <T>(values: Decoder<T>): Decoder<NonEmptyArray<T>> =>
-      array(values).andThen(
-        arr =>
-          arr.length > 0
-            ? succeed(createNonEmptyArray(arr))
-            : fail(`expected a non-empty array, got an empty array`)
+      array(values).andThen(arr =>
+        arr.length > 0
+          ? succeed(createNonEmptyArray(arr))
+          : fail(`expected a non-empty array, got an empty array`)
       );
 
     expect(nonEmptyArrayDecoder(number()).run([1, 2, 3])).toEqual({

@@ -493,8 +493,8 @@ export class Decoder<A> {
    * ```
    */
   static optional = <A>(decoder: Decoder<A>): Decoder<undefined | A> =>
-    new Decoder<undefined | A>(
-      (json: unknown) => (json === undefined ? Result.ok(undefined) : decoder.decode(json))
+    new Decoder<undefined | A>((json: unknown) =>
+      json === undefined ? Result.ok(undefined) : decoder.decode(json)
     );
 
   /**
