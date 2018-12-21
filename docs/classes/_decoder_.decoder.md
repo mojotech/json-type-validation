@@ -48,6 +48,7 @@ Alternatively, the main decoder `run()` method returns an object of type `Result
 * [optional](_decoder_.decoder.md#optional)
 * [string](_decoder_.decoder.md#string)
 * [succeed](_decoder_.decoder.md#succeed)
+* [tuple](_decoder_.decoder.md#tuple)
 * [union](_decoder_.decoder.md#union)
 * [unknownJson](_decoder_.decoder.md#unknownjson)
 * [valueAt](_decoder_.decoder.md#valueat)
@@ -63,7 +64,7 @@ Alternatively, the main decoder `run()` method returns an object of type `Result
 
 ⊕ **new Decoder**(decode: *`function`*): [Decoder](_decoder_.decoder.md)
 
-The Decoder class constructor is kept private to separate the internal `decode` function from the external `run` function. The distinction between the two functions is that `decode` returns a `Partial<DecoderError>` on failure, which contains an unfinished error report. When `run` is called on a decoder, the relevant series of `decode` calls is made, and then on failure the resulting `Partial<DecoderError>` is turned into a `DecoderError` by filling in the missing informaiton.
+The Decoder class constructor is kept private to separate the internal `decode` function from the external `run` function. The distinction between the two functions is that `decode` returns a `Partial<DecoderError>` on failure, which contains an unfinished error report. When `run` is called on a decoder, the relevant series of `decode` calls is made, and then on failure the resulting `Partial<DecoderError>` is turned into a `DecoderError` by filling in the missing information.
 
 While hiding the constructor may seem restrictive, leveraging the provided decoder combinators and helper functions such as `andThen` and `map` should be enough to build specialized decoders as needed.
 
@@ -484,7 +485,7 @@ ___
 
 ### `<Static>` dict
 
-▸ **dict**A(decoder: *[Decoder](_decoder_.decoder.md)<`A`>*): [Decoder](_decoder_.decoder.md)<`object`>
+▸ **dict**A(decoder: *[Decoder](_decoder_.decoder.md)<`A`>*): [Decoder](_decoder_.decoder.md)<`Record`<`string`, `A`>>
 
 Decoder for json objects where the keys are unknown strings, but the values should all be of the same type.
 
@@ -504,7 +505,7 @@ dict(number()).run({chocolate: 12, vanilla: 10, mint: 37});
 | ------ | ------ |
 | decoder | [Decoder](_decoder_.decoder.md)<`A`> |
 
-**Returns:** [Decoder](_decoder_.decoder.md)<`object`>
+**Returns:** [Decoder](_decoder_.decoder.md)<`Record`<`string`, `A`>>
 
 ___
 <a id="fail"></a>
@@ -746,11 +747,11 @@ ___
 
 ### `<Static>` object
 
-▸ **object**(): [Decoder](_decoder_.decoder.md)<`object`>
+▸ **object**(): [Decoder](_decoder_.decoder.md)<`Record`<`string`, `unknown`>>
 
 ▸ **object**A(decoders: *[DecoderObject](../modules/_decoder_.md#decoderobject)<`A`>*): [Decoder](_decoder_.decoder.md)<`A`>
 
-An higher-order decoder that runs decoders on specified fields of an object, and returns a new object with those fields. If `object` is called with no arguments, then the outer object part of the json is validated but not the contents, typing the result as a dictionary where all keys have a value of type `unknown`.
+An higher-order decoder that runs decoders on specified fields of an object, and returns a new object with those fields. If `object` is called with no arguments, then the outer object part of the json is validated but not the contents, typing the result as a record where all keys have a value of type `unknown`.
 
 The `optional` and `constant` decoders are particularly useful for decoding objects that match typescript interfaces.
 
@@ -766,7 +767,7 @@ object().map(Object.keys).run({n: 1, i: [], c: {}, e: 'e'})
 // => {ok: true, result: ['n', 'i', 'c', 'e']}
 ```
 
-**Returns:** [Decoder](_decoder_.decoder.md)<`object`>
+**Returns:** [Decoder](_decoder_.decoder.md)<`Record`<`string`, `unknown`>>
 
 **Type parameters:**
 
@@ -872,6 +873,154 @@ Decoder that ignores the input json and always succeeds with `fixedValue`.
 | fixedValue | `A` |
 
 **Returns:** [Decoder](_decoder_.decoder.md)<`A`>
+
+___
+<a id="tuple"></a>
+
+### `<Static>` tuple
+
+▸ **tuple**A(decoder: *[[Decoder](_decoder_.decoder.md)<`A`>]*): [Decoder](_decoder_.decoder.md)<[`A`]>
+
+▸ **tuple**A,B(decoder: *[[Decoder](_decoder_.decoder.md)<`A`>, [Decoder](_decoder_.decoder.md)<`B`>]*): [Decoder](_decoder_.decoder.md)<[`A`, `B`]>
+
+▸ **tuple**A,B,C(decoder: *[[Decoder](_decoder_.decoder.md)<`A`>, [Decoder](_decoder_.decoder.md)<`B`>, [Decoder](_decoder_.decoder.md)<`C`>]*): [Decoder](_decoder_.decoder.md)<[`A`, `B`, `C`]>
+
+▸ **tuple**A,B,C,D(decoder: *[[Decoder](_decoder_.decoder.md)<`A`>, [Decoder](_decoder_.decoder.md)<`B`>, [Decoder](_decoder_.decoder.md)<`C`>, [Decoder](_decoder_.decoder.md)<`D`>]*): [Decoder](_decoder_.decoder.md)<[`A`, `B`, `C`, `D`]>
+
+▸ **tuple**A,B,C,D,E(decoder: *[[Decoder](_decoder_.decoder.md)<`A`>, [Decoder](_decoder_.decoder.md)<`B`>, [Decoder](_decoder_.decoder.md)<`C`>, [Decoder](_decoder_.decoder.md)<`D`>, [Decoder](_decoder_.decoder.md)<`E`>]*): [Decoder](_decoder_.decoder.md)<[`A`, `B`, `C`, `D`, `E`]>
+
+▸ **tuple**A,B,C,D,E,F(decoder: *[[Decoder](_decoder_.decoder.md)<`A`>, [Decoder](_decoder_.decoder.md)<`B`>, [Decoder](_decoder_.decoder.md)<`C`>, [Decoder](_decoder_.decoder.md)<`D`>, [Decoder](_decoder_.decoder.md)<`E`>, [Decoder](_decoder_.decoder.md)<`F`>]*): [Decoder](_decoder_.decoder.md)<[`A`, `B`, `C`, `D`, `E`, `F`]>
+
+▸ **tuple**A,B,C,D,E,F,G(decoder: *[[Decoder](_decoder_.decoder.md)<`A`>, [Decoder](_decoder_.decoder.md)<`B`>, [Decoder](_decoder_.decoder.md)<`C`>, [Decoder](_decoder_.decoder.md)<`D`>, [Decoder](_decoder_.decoder.md)<`E`>, [Decoder](_decoder_.decoder.md)<`F`>, [Decoder](_decoder_.decoder.md)<`G`>]*): [Decoder](_decoder_.decoder.md)<[`A`, `B`, `C`, `D`, `E`, `F`, `G`]>
+
+▸ **tuple**A,B,C,D,E,F,G,H(decoder: *[[Decoder](_decoder_.decoder.md)<`A`>, [Decoder](_decoder_.decoder.md)<`B`>, [Decoder](_decoder_.decoder.md)<`C`>, [Decoder](_decoder_.decoder.md)<`D`>, [Decoder](_decoder_.decoder.md)<`E`>, [Decoder](_decoder_.decoder.md)<`F`>, [Decoder](_decoder_.decoder.md)<`G`>, [Decoder](_decoder_.decoder.md)<`H`>]*): [Decoder](_decoder_.decoder.md)<[`A`, `B`, `C`, `D`, `E`, `F`, `G`, `H`]>
+
+Decoder for fixed-length arrays, aka Tuples.
+
+Supports up to 8-tuples.
+
+Example:
+
+```
+tuple([number(), number(), string()]).run([5, 10, 'px'])
+// => {ok: true, result: [5, 10, 'px']}
+```
+
+**Type parameters:**
+
+#### A 
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| decoder | [[Decoder](_decoder_.decoder.md)<`A`>] |
+
+**Returns:** [Decoder](_decoder_.decoder.md)<[`A`]>
+
+**Type parameters:**
+
+#### A 
+#### B 
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| decoder | [[Decoder](_decoder_.decoder.md)<`A`>, [Decoder](_decoder_.decoder.md)<`B`>] |
+
+**Returns:** [Decoder](_decoder_.decoder.md)<[`A`, `B`]>
+
+**Type parameters:**
+
+#### A 
+#### B 
+#### C 
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| decoder | [[Decoder](_decoder_.decoder.md)<`A`>, [Decoder](_decoder_.decoder.md)<`B`>, [Decoder](_decoder_.decoder.md)<`C`>] |
+
+**Returns:** [Decoder](_decoder_.decoder.md)<[`A`, `B`, `C`]>
+
+**Type parameters:**
+
+#### A 
+#### B 
+#### C 
+#### D 
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| decoder | [[Decoder](_decoder_.decoder.md)<`A`>, [Decoder](_decoder_.decoder.md)<`B`>, [Decoder](_decoder_.decoder.md)<`C`>, [Decoder](_decoder_.decoder.md)<`D`>] |
+
+**Returns:** [Decoder](_decoder_.decoder.md)<[`A`, `B`, `C`, `D`]>
+
+**Type parameters:**
+
+#### A 
+#### B 
+#### C 
+#### D 
+#### E 
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| decoder | [[Decoder](_decoder_.decoder.md)<`A`>, [Decoder](_decoder_.decoder.md)<`B`>, [Decoder](_decoder_.decoder.md)<`C`>, [Decoder](_decoder_.decoder.md)<`D`>, [Decoder](_decoder_.decoder.md)<`E`>] |
+
+**Returns:** [Decoder](_decoder_.decoder.md)<[`A`, `B`, `C`, `D`, `E`]>
+
+**Type parameters:**
+
+#### A 
+#### B 
+#### C 
+#### D 
+#### E 
+#### F 
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| decoder | [[Decoder](_decoder_.decoder.md)<`A`>, [Decoder](_decoder_.decoder.md)<`B`>, [Decoder](_decoder_.decoder.md)<`C`>, [Decoder](_decoder_.decoder.md)<`D`>, [Decoder](_decoder_.decoder.md)<`E`>, [Decoder](_decoder_.decoder.md)<`F`>] |
+
+**Returns:** [Decoder](_decoder_.decoder.md)<[`A`, `B`, `C`, `D`, `E`, `F`]>
+
+**Type parameters:**
+
+#### A 
+#### B 
+#### C 
+#### D 
+#### E 
+#### F 
+#### G 
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| decoder | [[Decoder](_decoder_.decoder.md)<`A`>, [Decoder](_decoder_.decoder.md)<`B`>, [Decoder](_decoder_.decoder.md)<`C`>, [Decoder](_decoder_.decoder.md)<`D`>, [Decoder](_decoder_.decoder.md)<`E`>, [Decoder](_decoder_.decoder.md)<`F`>, [Decoder](_decoder_.decoder.md)<`G`>] |
+
+**Returns:** [Decoder](_decoder_.decoder.md)<[`A`, `B`, `C`, `D`, `E`, `F`, `G`]>
+
+**Type parameters:**
+
+#### A 
+#### B 
+#### C 
+#### D 
+#### E 
+#### F 
+#### G 
+#### H 
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| decoder | [[Decoder](_decoder_.decoder.md)<`A`>, [Decoder](_decoder_.decoder.md)<`B`>, [Decoder](_decoder_.decoder.md)<`C`>, [Decoder](_decoder_.decoder.md)<`D`>, [Decoder](_decoder_.decoder.md)<`E`>, [Decoder](_decoder_.decoder.md)<`F`>, [Decoder](_decoder_.decoder.md)<`G`>, [Decoder](_decoder_.decoder.md)<`H`>] |
+
+**Returns:** [Decoder](_decoder_.decoder.md)<[`A`, `B`, `C`, `D`, `E`, `F`, `G`, `H`]>
 
 ___
 <a id="union"></a>

@@ -20,6 +20,7 @@
 * [optional](_combinators_.md#optional)
 * [string](_combinators_.md#string)
 * [succeed](_combinators_.md#succeed)
+* [tuple](_combinators_.md#tuple)
 * [union](_combinators_.md#union)
 * [unknownJson](_combinators_.md#unknownjson)
 * [valueAt](_combinators_.md#valueat)
@@ -153,6 +154,15 @@ ___
 **● succeed**: *[succeed]()* =  Decoder.succeed
 
 See `Decoder.succeed`
+
+___
+<a id="tuple"></a>
+
+### `<Const>` tuple
+
+**● tuple**: *[tuple](../classes/_decoder_.decoder.md#tuple)* =  Decoder.tuple
+
+See `Decoder.tuple`
 
 ___
 <a id="union"></a>
