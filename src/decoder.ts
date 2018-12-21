@@ -414,7 +414,7 @@ export class Decoder<A> {
         }
         const result = [];
         for (let i: number = 0; i < decoders.length; i++) {
-          const nth = decoders[i].run(json[i]);
+          const nth = decoders[i].decode(json[i]);
           if (nth.ok) {
             result[i] = nth.result;
           } else {

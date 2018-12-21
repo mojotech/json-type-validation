@@ -395,7 +395,7 @@ describe('tuple', () => {
 
       expect(decoder.run([4, 5])).toMatchObject({
         ok: false,
-        error: {at: 'input[1]input', message: 'expected a string, got a number'}
+        error: {at: 'input[1]', message: 'expected a string, got a number'}
       });
     });
 
@@ -411,7 +411,7 @@ describe('tuple', () => {
       const error = decoder.run([{hey: {'Howdy!': {}}}]);
       expect(error).toMatchObject({
         ok: false,
-        error: {at: 'input[0]input.hey.Howdy!', message: 'expected a string, got an object'}
+        error: {at: 'input[0].hey.Howdy!', message: 'expected a string, got an object'}
       });
     });
   });
