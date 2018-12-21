@@ -397,30 +397,11 @@ export class Decoder<A> {
   static tuple<A>(decoder: [Decoder<A>]): Decoder<[A]>;
   static tuple<A, B>(decoder: [Decoder<A>, Decoder<B>]): Decoder<[A, B]>;
   static tuple<A, B, C>(decoder: [Decoder<A>, Decoder<B>, Decoder<C>]): Decoder<[A, B, C]>;
-  static tuple<A, B, C, D>(
-    decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>]
-  ): Decoder<[A, B, C, D]>;
-  static tuple<A, B, C, D, E>(
-    decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>, Decoder<E>]
-  ): Decoder<[A, B, C, D, E]>;
-  static tuple<A, B, C, D, E, F>(
-    decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>, Decoder<E>, Decoder<F>]
-  ): Decoder<[A, B, C, D, E, F]>;
-  static tuple<A, B, C, D, E, F, G>(
-    decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>, Decoder<E>, Decoder<F>, Decoder<G>]
-  ): Decoder<[A, B, C, D, E, F, G]>;
-  static tuple<A, B, C, D, E, F, G, H>(
-    decoder: [
-      Decoder<A>,
-      Decoder<B>,
-      Decoder<C>,
-      Decoder<D>,
-      Decoder<E>,
-      Decoder<F>,
-      Decoder<G>,
-      Decoder<H>
-    ]
-  ): Decoder<[A, B, C, D, E, F, G, H]>;
+  static tuple<A, B, C, D>(decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>]): Decoder<[A, B, C, D]>; // prettier-ignore
+  static tuple<A, B, C, D, E>(decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>, Decoder<E>]): Decoder<[A, B, C, D, E]>; // prettier-ignore
+  static tuple<A, B, C, D, E, F>(decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>, Decoder<E>, Decoder<F>]): Decoder<[A, B, C, D, E, F]>; // prettier-ignore
+  static tuple<A, B, C, D, E, F, G>(decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>, Decoder<E>, Decoder<F>, Decoder<G>]): Decoder<[A, B, C, D, E, F, G]>; // prettier-ignore
+  static tuple<A, B, C, D, E, F, G, H>(decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>, Decoder<E>, Decoder<F>, Decoder<G>, Decoder<H>]): Decoder<[A, B, C, D, E, F, G, H]>; // prettier-ignore
   static tuple<A>(decoders?: Decoder<A>[]) {
     return new Decoder((json: unknown) => {
       if (isJsonArray(json) && decoders) {
