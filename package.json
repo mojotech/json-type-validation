@@ -58,8 +58,7 @@
         "statements": 95
       }
     },
-    "collectCoverage": true,
-    "testURL": "http://localhost/"
+    "collectCoverage": true
   },
   "devDependencies": {
     "@types/jest": "^22.2.3",
