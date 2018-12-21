@@ -402,9 +402,9 @@ export class Decoder<A> {
   static tuple<A, B, C, D, E, F>(decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>, Decoder<E>, Decoder<F>]): Decoder<[A, B, C, D, E, F]>; // prettier-ignore
   static tuple<A, B, C, D, E, F, G>(decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>, Decoder<E>, Decoder<F>, Decoder<G>]): Decoder<[A, B, C, D, E, F, G]>; // prettier-ignore
   static tuple<A, B, C, D, E, F, G, H>(decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>, Decoder<E>, Decoder<F>, Decoder<G>, Decoder<H>]): Decoder<[A, B, C, D, E, F, G, H]>; // prettier-ignore
-  static tuple<A>(decoders?: Decoder<A>[]) {
+  static tuple<A>(decoders: Decoder<A>[]) {
     return new Decoder((json: unknown) => {
-      if (isJsonArray(json) && decoders) {
+      if (isJsonArray(json)) {
         if (json.length !== decoders.length) {
           return Result.err({
             message: `expected an array of length ${decoders.length}, got an array of length ${
@@ -422,8 +422,6 @@ export class Decoder<A> {
           }
         }
         return Result.ok(result);
-      } else if (isJsonArray(json)) {
-        return Result.ok(json);
       } else {
         return Result.err({message: expectedGot('a fixed-length array', json)});
       }
