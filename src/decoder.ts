@@ -94,11 +94,8 @@ const expectedGot = (expected: string, got: unknown) =>
 const printPath = (paths: (string | number)[]): string =>
   paths.map(path => (typeof path === 'string' ? `.${path}` : `[${path}]`)).join('');
 
-// Am I misunderstanding the use of `prependAt`? Should it not be necessary to
-// strip 'input' from the previous `at`?
-const inputPrefixRegex = /^input/;
 const prependAt = (newAt: string, {at, ...rest}: Partial<DecoderError>): Partial<DecoderError> => ({
-  at: newAt + (at || '').replace(inputPrefixRegex, ''),
+  at: newAt + (at || ''),
   ...rest
 });
 
