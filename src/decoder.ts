@@ -407,7 +407,7 @@ export class Decoder<A> {
       if (isJsonArray(json)) {
         if (json.length !== decoders.length) {
           return Result.err({
-            message: `expected an array of length ${decoders.length}, got an array of length ${
+            message: `expected a tuple of length ${decoders.length}, got one of length ${
               json.length
             }`
           });
