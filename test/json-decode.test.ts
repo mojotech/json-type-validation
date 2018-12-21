@@ -383,7 +383,7 @@ describe('tuple', () => {
 
       expect(decoder.run({x: 1})).toMatchObject({
         ok: false,
-        error: {at: 'input', message: 'expected a fixed-length array, got an object'}
+        error: {at: 'input', message: 'expected a tuple of length 1, got an object'}
       });
     });
 

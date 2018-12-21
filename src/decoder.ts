@@ -423,7 +423,7 @@ export class Decoder<A> {
         }
         return Result.ok(result);
       } else {
-        return Result.err({message: expectedGot('a fixed-length array', json)});
+        return Result.err({message: expectedGot(`a tuple of length ${decoders.length}`, json)});
       }
     });
   }
