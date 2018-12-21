@@ -141,10 +141,11 @@ export class Decoder<A> {
    * Decoder primitive that validates strings, and fails on all other input.
    */
   static string(): Decoder<string> {
-    return new Decoder<string>((json: unknown) =>
-      typeof json === 'string'
-        ? Result.ok(json)
-        : Result.err({message: expectedGot('a string', json)})
+    return new Decoder<string>(
+      (json: unknown) =>
+        typeof json === 'string'
+          ? Result.ok(json)
+          : Result.err({message: expectedGot('a string', json)})
     );
   }
 
@@ -152,10 +153,11 @@ export class Decoder<A> {
    * Decoder primitive that validates numbers, and fails on all other input.
    */
   static number(): Decoder<number> {
-    return new Decoder<number>((json: unknown) =>
-      typeof json === 'number'
-        ? Result.ok(json)
-        : Result.err({message: expectedGot('a number', json)})
+    return new Decoder<number>(
+      (json: unknown) =>
+        typeof json === 'number'
+          ? Result.ok(json)
+          : Result.err({message: expectedGot('a number', json)})
     );
   }
 
@@ -163,10 +165,11 @@ export class Decoder<A> {
    * Decoder primitive that validates booleans, and fails on all other input.
    */
   static boolean(): Decoder<boolean> {
-    return new Decoder<boolean>((json: unknown) =>
-      typeof json === 'boolean'
-        ? Result.ok(json)
-        : Result.err({message: expectedGot('a boolean', json)})
+    return new Decoder<boolean>(
+      (json: unknown) =>
+        typeof json === 'boolean'
+          ? Result.ok(json)
+          : Result.err({message: expectedGot('a boolean', json)})
     );
   }
 
@@ -269,10 +272,11 @@ export class Decoder<A> {
   static constant(value: false): Decoder<false>;
   static constant<A>(value: A): Decoder<A>;
   static constant(value: any): Decoder<any> {
-    return new Decoder((json: unknown) =>
-      isEqual(json, value)
-        ? Result.ok(value)
-        : Result.err({message: `expected ${JSON.stringify(value)}, got ${JSON.stringify(json)}`})
+    return new Decoder(
+      (json: unknown) =>
+        isEqual(json, value)
+          ? Result.ok(value)
+          : Result.err({message: `expected ${JSON.stringify(value)}, got ${JSON.stringify(json)}`})
     );
   }
 
@@ -493,8 +497,8 @@ export class Decoder<A> {
    * ```
    */
   static optional = <A>(decoder: Decoder<A>): Decoder<undefined | A> =>
-    new Decoder<undefined | A>((json: unknown) =>
-      json === undefined ? Result.ok(undefined) : decoder.decode(json)
+    new Decoder<undefined | A>(
+      (json: unknown) => (json === undefined ? Result.ok(undefined) : decoder.decode(json))
     );
 
   /**
