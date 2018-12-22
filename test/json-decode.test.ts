@@ -361,7 +361,7 @@ describe('tuple', () => {
     });
 
     it('can decode a nested object', () => {
-      const decoder: Decoder<[{x: number; y: number}, boolean]> = tuple([
+      const decoder: Decoder<[{x: number; y: number}, false]> = tuple([
         object({x: number(), y: number()}),
         constant(false)
       ]);
@@ -400,7 +400,7 @@ describe('tuple', () => {
     });
 
     it('properly displays nested errors', () => {
-      const decoder: Decoder<[{hey: {'Howdy!': unknown}}]> = tuple([
+      const decoder: Decoder<[{hey: {'Howdy!': string}}]> = tuple([
         object({
           hey: object({
             'Howdy!': string()
