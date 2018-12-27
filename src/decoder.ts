@@ -128,7 +128,7 @@ export class Decoder<A> {
    * `Partial<DecoderError>` on failure, which contains an unfinished error
    * report. When `run` is called on a decoder, the relevant series of `decode`
    * calls is made, and then on failure the resulting `Partial<DecoderError>`
-   * is turned into a `DecoderError` by filling in the missing informaiton.
+   * is turned into a `DecoderError` by filling in the missing information.
    *
    * While hiding the constructor may seem restrictive, leveraging the
    * provided decoder combinators and helper functions such as
@@ -379,6 +379,51 @@ export class Decoder<A> {
         return Result.ok(json);
       } else {
         return Result.err({message: expectedGot('an array', json)});
+      }
+    });
+  }
+
+  /**
+   * Decoder for fixed-length arrays, aka Tuples.
+   *
+   * Supports up to 8-tuples.
+   *
+   * Example:
+   * ```
+   * tuple([number(), number(), string()]).run([5, 10, 'px'])
+   * // => {ok: true, result: [5, 10, 'px']}
+   * ```
+   */
+  static tuple<A>(decoder: [Decoder<A>]): Decoder<[A]>;
+  static tuple<A, B>(decoder: [Decoder<A>, Decoder<B>]): Decoder<[A, B]>;
+  static tuple<A, B, C>(decoder: [Decoder<A>, Decoder<B>, Decoder<C>]): Decoder<[A, B, C]>;
+  static tuple<A, B, C, D>(decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>]): Decoder<[A, B, C, D]>; // prettier-ignore
+  static tuple<A, B, C, D, E>(decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>, Decoder<E>]): Decoder<[A, B, C, D, E]>; // prettier-ignore
+  static tuple<A, B, C, D, E, F>(decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>, Decoder<E>, Decoder<F>]): Decoder<[A, B, C, D, E, F]>; // prettier-ignore
+  static tuple<A, B, C, D, E, F, G>(decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>, Decoder<E>, Decoder<F>, Decoder<G>]): Decoder<[A, B, C, D, E, F, G]>; // prettier-ignore
+  static tuple<A, B, C, D, E, F, G, H>(decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>, Decoder<E>, Decoder<F>, Decoder<G>, Decoder<H>]): Decoder<[A, B, C, D, E, F, G, H]>; // prettier-ignore
+  static tuple<A>(decoders: Decoder<A>[]) {
+    return new Decoder((json: unknown) => {
+      if (isJsonArray(json)) {
+        if (json.length !== decoders.length) {
+          return Result.err({
+            message: `expected a tuple of length ${decoders.length}, got one of length ${
+              json.length
+            }`
+          });
+        }
+        const result = [];
+        for (let i: number = 0; i < decoders.length; i++) {
+          const nth = decoders[i].decode(json[i]);
+          if (nth.ok) {
+            result[i] = nth.result;
+          } else {
+            return Result.err(prependAt(`[${i}]`, nth.error));
+          }
+        }
+        return Result.ok(result);
+      } else {
+        return Result.err({message: expectedGot(`a tuple of length ${decoders.length}`, json)});
       }
     });
   }

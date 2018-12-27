@@ -26,6 +26,9 @@ export const object = Decoder.object;
 /** See `Decoder.array` */
 export const array = Decoder.array;
 
+/** See `Decoder.tuple` */
+export const tuple = Decoder.tuple;
+
 /** See `Decoder.dict` */
 export const dict = Decoder.dict;
 
