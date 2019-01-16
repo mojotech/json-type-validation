@@ -12,6 +12,8 @@ This library owes thanks to:
 ```
 npm i @mojotech/json-type-validation
 ```
+Projects using `< typescript@3.0.1` will need a polyfill for the `unknown`
+type, such as [unknown-ts](https://www.npmjs.com/package/unknown-ts).
 
 ## Motivation
 
