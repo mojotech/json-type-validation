@@ -338,19 +338,8 @@ export class Decoder<A> {
    * array(array(boolean())).run([[true], [], [true, false, false]])
    * // => {ok: true, result: [[true], [], [true, false, false]]}
    *
-   *
-   * const validNumbersDecoder = array()
-   *   .map((arr: unknown[]) => arr.map(number().run))
-   *   .map(Result.successes)
-   *
-   * validNumbersDecoder.run([1, true, 2, 3, 'five', 4, []])
-   * // {ok: true, result: [1, 2, 3, 4]}
-   *
-   * validNumbersDecoder.run([false, 'hi', {}])
-   * // {ok: true, result: []}
-   *
-   * validNumbersDecoder.run(false)
-   * // {ok: false, error: {..., message: "expected an array, got a boolean"}}
+   * array().map(a => a.length).run(['a', true, 15, 'z'])
+   * // => {ok: true, result: 4}
    * ```
    */
   static array(): Decoder<unknown[]>;
@@ -641,6 +630,32 @@ export class Decoder<A> {
    */
   static fail = <A>(errorMessage: string): Decoder<A> =>
     new Decoder((_, context) => decoderError(context, errorMessage));
+
+  /**
+   * Decoder to prevent error propagation. Always succeeds, but instead of
+   * returning the decoded value, return a `Result` object containing either
+   * the successfully decoded value, or the decoder failure error.
+   *
+   * Example:
+   * ```
+   * array(result(string())).run(['a', 1])
+   * // => {
+   * //   ok: true,
+   * //   result: [
+   * //     {ok: true, result: 'a'},
+   * //     {ok: false, error: {..., message: 'expected a string, got a number'}}
+   * //   ]
+   * // }
+   *
+   * array(result(number())).map(Result.successes).run([1, true, 2, 3, [], 4])
+   * // => {ok: true, result: [1, 2, 3, 4]}
+   *
+   * array(result(boolean())).run(false)
+   * // => {ok: false, error: {..., message: "expected an array, got a boolean"}}
+   * ```
+   */
+  static result = <A>(decoder: Decoder<A>): Decoder<DecoderResult<A>> =>
+    new Decoder((json, _) => Result.ok(decoder.run(json)));
 
   /**
    * Decoder that allows for validating recursive data structures. Unlike with

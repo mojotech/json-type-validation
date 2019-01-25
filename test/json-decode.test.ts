@@ -20,6 +20,7 @@ import {
   valueAt,
   succeed,
   tuple,
+  result,
   fail,
   lazy
 } from '../src/index';
@@ -329,18 +330,18 @@ describe('array', () => {
   });
 
   it('decodes any array when the array members decoder is not specified', () => {
-    const validNumbersDecoder = array()
-      .map((arr: unknown[]) => arr.map(number().run))
-      .map(Result.successes);
-
-    expect(validNumbersDecoder.run([1, true, 2, 3, 'five', 4, []])).toEqual({
+    expect(array().run([1, true, 2, 3, 'five', 4, []])).toEqual({
       ok: true,
-      result: [1, 2, 3, 4]
+      result: [1, true, 2, 3, 'five', 4, []]
     });
 
-    expect(validNumbersDecoder.run([false, 'hi', {}])).toEqual({ok: true, result: []});
+    expect(
+      array()
+        .map(a => a.length)
+        .run(['a', true, 15, 'z'])
+    ).toEqual({ok: true, result: 4});
 
-    expect(validNumbersDecoder.run(false)).toMatchObject({
+    expect(array().run(false)).toMatchObject({
       ok: false,
       error: {message: 'expected an array, got a boolean'}
     });
@@ -775,6 +776,56 @@ describe('fail', () => {
       error: {at: 'input', message: wisdom}
     });
     expect(decoder.run(5)).toMatchObject({ok: false, error: {at: 'input', message: wisdom}});
+  });
+});
+
+describe('result', () => {
+  describe('can decode properties of an object separately', () => {
+    type PropResults<T> = {[K in keyof T]: DecoderResult<T[K]>};
+    interface Book {
+      title: string;
+      author: string;
+      pageCount?: number;
+    }
+
+    const decoder: Decoder<PropResults<Book>> = object({
+      title: result(string()),
+      author: result(string()),
+      pageCount: result(optional(number()))
+    });
+
+    it('succeeds when given an object', () => {
+      const book = {title: 'The Only Harmless Great Thing', author: 'Brooke Bolander'};
+      expect(decoder.run(book)).toEqual({
+        ok: true,
+        result: {
+          author: {ok: true, result: 'Brooke Bolander'},
+          pageCount: {ok: true, result: undefined},
+          title: {ok: true, result: 'The Only Harmless Great Thing'}
+        }
+      });
+    });
+  });
+
+  describe('can decode items of an array separately', () => {
+    it('succeeds even when some array items fail to decode', () => {
+      const decoder = array(result(string()));
+      expect(decoder.run(['a', 1])).toMatchObject({
+        ok: true,
+        result: [
+          {ok: true, result: 'a'},
+          {ok: false, error: {input: 1, at: 'input', message: 'expected a string, got a number'}}
+        ]
+      });
+    });
+
+    it('fails when the array decoder fails', () => {
+      const decoder = array(result(boolean()));
+      expect(decoder.run(false)).toMatchObject({
+        ok: false,
+        error: {message: 'expected an array, got a boolean'}
+      });
+    });
   });
 });
 

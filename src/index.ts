@@ -22,5 +22,6 @@ export {
   valueAt,
   succeed,
   fail,
+  result,
   lazy
 } from './combinators';
