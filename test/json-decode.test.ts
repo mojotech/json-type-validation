@@ -1,5 +1,6 @@
 import {
   Decoder,
+  DecoderResult,
   Result,
   isDecoderError,
   string,
@@ -536,7 +537,7 @@ describe('oneOf', () => {
         at: 'input',
         message:
           'expected a value matching one of the decoders, got the errors ' +
-          '["at error: expected a string, got an array", "at error: expected a number, got an array"]'
+          '["at input: expected a string, got an array", "at input: expected a number, got an array"]'
       }
     });
   });
@@ -552,8 +553,8 @@ describe('oneOf', () => {
         at: 'input[0]',
         message:
           'expected a value matching one of the decoders, got the errors ' +
-          '["at error[1].a.b: expected a number, got a boolean", ' +
-          '"at error[1].a.x: path does not exist"]'
+          '["at input[0][1].a.b: expected a number, got a boolean", ' +
+          '"at input[0][1].a.x: path does not exist"]'
       }
     });
   });
@@ -596,7 +597,7 @@ describe('union', () => {
         at: 'input',
         message:
           'expected a value matching one of the decoders, got the errors ' +
-          '["at error.kind: expected "a", got "b"", "at error.value: expected a boolean, got a number"]'
+          '["at input.kind: expected "a", got "b"", "at input.value: expected a boolean, got a number"]'
       }
     });
   });

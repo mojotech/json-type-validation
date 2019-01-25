@@ -18,14 +18,12 @@ export interface DecoderError {
  * with the decoded value of type `A`, on failure returns `Err` containing a
  * `DecoderError`.
  */
-type RunResult<A> = Result.Result<A, DecoderError>;
+export type DecoderResult<A> = Result.Result<A, DecoderError>;
 
-/**
- * Alias for the result of the internal `Decoder.decode` method. Since `decode`
- * is a private function it returns a partial decoder error on failure, which
- * will be completed and polished when handed off to the `run` method.
- */
-type DecodeResult<A> = Result.Result<A, Partial<DecoderError>>;
+interface Context {
+  input: unknown;
+  at: string;
+}
 
 /**
  * Defines a mapped type over an interface `A`. `DecoderObject<A>` is an
@@ -88,16 +86,21 @@ const typeString = (json: unknown): string => {
   }
 };
 
+const decoderError = <A>({input, at}: Context, message: string): DecoderResult<A> =>
+  Result.err({
+    kind: 'DecoderError' as 'DecoderError',
+    input,
+    at,
+    message
+  });
+
 const expectedGot = (expected: string, got: unknown) =>
   `expected ${expected}, got ${typeString(got)}`;
 
 const printPath = (paths: (string | number)[]): string =>
   paths.map(path => (typeof path === 'string' ? `.${path}` : `[${path}]`)).join('');
 
-const prependAt = (newAt: string, {at, ...rest}: Partial<DecoderError>): Partial<DecoderError> => ({
-  at: newAt + (at || ''),
-  ...rest
-});
+const appendAt = ({input, at}: Context, newAt: string): Context => ({input, at: at + newAt});
 
 /**
  * Decoders transform json objects with unknown structure into known and
@@ -122,30 +125,19 @@ const prependAt = (newAt: string, {at, ...rest}: Partial<DecoderError>): Partial
  */
 export class Decoder<A> {
   /**
-   * The Decoder class constructor is kept private to separate the internal
-   * `decode` function from the external `run` function. The distinction
-   * between the two functions is that `decode` returns a
-   * `Partial<DecoderError>` on failure, which contains an unfinished error
-   * report. When `run` is called on a decoder, the relevant series of `decode`
-   * calls is made, and then on failure the resulting `Partial<DecoderError>`
-   * is turned into a `DecoderError` by filling in the missing information.
-   *
-   * While hiding the constructor may seem restrictive, leveraging the
-   * provided decoder combinators and helper functions such as
-   * `andThen` and `map` should be enough to build specialized decoders as
-   * needed.
+   * @ignore
    */
-  private constructor(private decode: (json: unknown) => DecodeResult<A>) {}
+  private constructor(private decode: (json: unknown, context: Context) => DecoderResult<A>) {}
 
   /**
    * Decoder primitive that validates strings, and fails on all other input.
    */
   static string(): Decoder<string> {
     return new Decoder(
-      (json: unknown) =>
+      (json, context) =>
         typeof json === 'string'
           ? Result.ok(json)
-          : Result.err({message: expectedGot('a string', json)})
+          : decoderError(context, expectedGot('a string', json))
     );
   }
 
@@ -154,10 +146,10 @@ export class Decoder<A> {
    */
   static number(): Decoder<number> {
     return new Decoder(
-      (json: unknown) =>
+      (json, context) =>
         typeof json === 'number'
           ? Result.ok(json)
-          : Result.err({message: expectedGot('a number', json)})
+          : decoderError(context, expectedGot('a number', json))
     );
   }
 
@@ -166,10 +158,10 @@ export class Decoder<A> {
    */
   static boolean(): Decoder<boolean> {
     return new Decoder(
-      (json: unknown) =>
+      (json, context) =>
         typeof json === 'boolean'
           ? Result.ok(json)
-          : Result.err({message: expectedGot('a boolean', json)})
+          : decoderError(context, expectedGot('a boolean', json))
     );
   }
 
@@ -191,13 +183,13 @@ export class Decoder<A> {
    * });
    * ```
    */
-  static anyJson = (): Decoder<any> => new Decoder((json: unknown) => Result.ok(json));
+  static anyJson = (): Decoder<any> => new Decoder((json, _) => Result.ok(json));
 
   /**
    * Decoder identity function which always succeeds and types the result as
    * `unknown`.
    */
-  static unknownJson = (): Decoder<unknown> => new Decoder((json: unknown) => Result.ok(json));
+  static unknownJson = (): Decoder<unknown> => new Decoder((json, _) => Result.ok(json));
 
   /**
    * Decoder primitive that only matches on exact values.
@@ -272,10 +264,10 @@ export class Decoder<A> {
   static constant<A>(value: A): Decoder<A>;
   static constant(value: any): Decoder<any> {
     return new Decoder(
-      (json: unknown) =>
+      (json, context) =>
         isEqual(json, value)
           ? Result.ok(value)
-          : Result.err({message: `expected ${JSON.stringify(value)}, got ${JSON.stringify(json)}`})
+          : decoderError(context, `expected ${JSON.stringify(value)}, got ${JSON.stringify(json)}`)
     );
   }
 
@@ -303,21 +295,21 @@ export class Decoder<A> {
   static object(): Decoder<Record<string, unknown>>;
   static object<A>(decoders: DecoderObject<A>): Decoder<A>;
   static object<A>(decoders?: DecoderObject<A>) {
-    return new Decoder((json: unknown) => {
+    return new Decoder((json, context) => {
       if (isJsonObject(json) && decoders) {
         let obj: any = {};
         for (const key in decoders) {
           if (decoders.hasOwnProperty(key)) {
-            const r = decoders[key].decode(json[key]);
+            const r = decoders[key].decode(json[key], appendAt(context, `.${key}`));
             if (r.ok === true) {
               // tslint:disable-next-line:strict-type-predicates
               if (r.result !== undefined) {
                 obj[key] = r.result;
               }
             } else if (json[key] === undefined) {
-              return Result.err({message: `the key '${key}' is required but was not present`});
+              return decoderError(context, `the key '${key}' is required but was not present`);
             } else {
-              return Result.err(prependAt(`.${key}`, r.error));
+              return r;
             }
           }
         }
@@ -325,7 +317,7 @@ export class Decoder<A> {
       } else if (isJsonObject(json)) {
         return Result.ok(json);
       } else {
-        return Result.err({message: expectedGot('an object', json)});
+        return decoderError(context, expectedGot('an object', json));
       }
     });
   }
@@ -364,20 +356,21 @@ export class Decoder<A> {
   static array(): Decoder<unknown[]>;
   static array<A>(decoder: Decoder<A>): Decoder<A[]>;
   static array<A>(decoder?: Decoder<A>) {
-    return new Decoder(json => {
+    return new Decoder((json, context) => {
       if (isJsonArray(json) && decoder) {
-        const decodeValue = (v: unknown, i: number): DecodeResult<A> =>
-          Result.mapError(err => prependAt(`[${i}]`, err), decoder.decode(v));
-
         return json.reduce(
-          (acc: DecodeResult<A[]>, v: unknown, i: number) =>
-            Result.map2((arr, result) => [...arr, result], acc, decodeValue(v, i)),
+          (acc: DecoderResult<A[]>, v: unknown, i: number) =>
+            Result.map2(
+              (arr, result) => [...arr, result],
+              acc,
+              decoder.decode(v, appendAt(context, `[${i}]`))
+            ),
           Result.ok([])
         );
       } else if (isJsonArray(json)) {
         return Result.ok(json);
       } else {
-        return Result.err({message: expectedGot('an array', json)});
+        return decoderError(context, expectedGot('an array', json));
       }
     });
   }
@@ -402,27 +395,26 @@ export class Decoder<A> {
   static tuple<A, B, C, D, E, F, G>(decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>, Decoder<E>, Decoder<F>, Decoder<G>]): Decoder<[A, B, C, D, E, F, G]>; // prettier-ignore
   static tuple<A, B, C, D, E, F, G, H>(decoder: [Decoder<A>, Decoder<B>, Decoder<C>, Decoder<D>, Decoder<E>, Decoder<F>, Decoder<G>, Decoder<H>]): Decoder<[A, B, C, D, E, F, G, H]>; // prettier-ignore
   static tuple<A>(decoders: Decoder<A>[]) {
-    return new Decoder((json: unknown) => {
+    return new Decoder((json, context) => {
       if (isJsonArray(json)) {
         if (json.length !== decoders.length) {
-          return Result.err({
-            message: `expected a tuple of length ${decoders.length}, got one of length ${
-              json.length
-            }`
-          });
+          return decoderError(
+            context,
+            `expected a tuple of length ${decoders.length}, got one of length ${json.length}`
+          );
         }
         const result = [];
         for (let i: number = 0; i < decoders.length; i++) {
-          const nth = decoders[i].decode(json[i]);
-          if (nth.ok) {
-            result[i] = nth.result;
+          const r = decoders[i].decode(json[i], appendAt(context, `[${i}]`));
+          if (r.ok) {
+            result[i] = r.result;
           } else {
-            return Result.err(prependAt(`[${i}]`, nth.error));
+            return r;
           }
         }
         return Result.ok(result);
       } else {
-        return Result.err({message: expectedGot(`a tuple of length ${decoders.length}`, json)});
+        return decoderError(context, expectedGot(`a tuple of length ${decoders.length}`, json));
       }
     });
   }
@@ -438,22 +430,22 @@ export class Decoder<A> {
    * ```
    */
   static dict = <A>(decoder: Decoder<A>): Decoder<Record<string, A>> =>
-    new Decoder(json => {
+    new Decoder((json, context) => {
       if (isJsonObject(json)) {
-        let obj: Record<string, A> = {};
+        const obj: Record<string, A> = {};
         for (const key in json) {
           if (json.hasOwnProperty(key)) {
-            const r = decoder.decode(json[key]);
+            const r = decoder.decode(json[key], appendAt(context, `.${key}`));
             if (r.ok === true) {
               obj[key] = r.result;
             } else {
-              return Result.err(prependAt(`.${key}`, r.error));
+              return r;
             }
           }
         }
         return Result.ok(obj);
       } else {
-        return Result.err({message: expectedGot('an object', json)});
+        return decoderError(context, expectedGot('an object', json));
       }
     });
 
@@ -476,7 +468,7 @@ export class Decoder<A> {
    */
   static optional = <A>(decoder: Decoder<A>): Decoder<undefined | A> =>
     new Decoder(
-      (json: unknown) => (json === undefined ? Result.ok(undefined) : decoder.decode(json))
+      (json, context) => (json === undefined ? Result.ok(undefined) : decoder.decode(json, context))
     );
 
   /**
@@ -494,22 +486,21 @@ export class Decoder<A> {
    * ```
    */
   static oneOf = <A>(...decoders: Decoder<A>[]): Decoder<A> =>
-      const errors: Partial<DecoderError>[] = [];
-    new Decoder((json: unknown) => {
+    new Decoder((json, context) => {
+      const errors: DecoderError[] = [];
       for (let i: number = 0; i < decoders.length; i++) {
-        const r = decoders[i].decode(json);
+        const r = decoders[i].decode(json, context);
         if (r.ok === true) {
           return r;
         } else {
           errors[i] = r.error;
         }
       }
-      const errorsList = errors
-        .map(error => `at error${error.at || ''}: ${error.message}`)
-        .join('", "');
-      return Result.err({
-        message: `expected a value matching one of the decoders, got the errors ["${errorsList}"]`
-      });
+      const errorsList = errors.map(error => `at ${error.at}: ${error.message}`).join('", "');
+      return decoderError(
+        context,
+        `expected a value matching one of the decoders, got the errors ["${errorsList}"]`
+      );
     });
 
   /**
@@ -565,9 +556,10 @@ export class Decoder<A> {
   static intersection <A, B, C, D, E, F, G>(ad: Decoder<A>, bd: Decoder<B>, cd: Decoder<C>, dd: Decoder<D>, ed: Decoder<E>, fd: Decoder<F>, gd: Decoder<G>): Decoder<A & B & C & D & E & F & G>; // prettier-ignore
   static intersection <A, B, C, D, E, F, G, H>(ad: Decoder<A>, bd: Decoder<B>, cd: Decoder<C>, dd: Decoder<D>, ed: Decoder<E>, fd: Decoder<F>, gd: Decoder<G>, hd: Decoder<H>): Decoder<A & B & C & D & E & F & G & H>; // prettier-ignore
   static intersection(ad: Decoder<any>, bd: Decoder<any>, ...ds: Decoder<any>[]): Decoder<any> {
-    return new Decoder((json: unknown) =>
+    return new Decoder((json, context) =>
       [ad, bd, ...ds].reduce(
-        (acc: DecodeResult<any>, decoder) => Result.map2(Object.assign, acc, decoder.decode(json)),
+        (acc: DecoderResult<any>, decoder) =>
+          Result.map2(Object.assign, acc, decoder.decode(json, context)),
         Result.ok({})
       )
     );
@@ -578,8 +570,8 @@ export class Decoder<A> {
    * default value.
    */
   static withDefault = <A>(defaultValue: A, decoder: Decoder<A>): Decoder<A> =>
-    new Decoder((json: unknown) =>
-      Result.ok(Result.withDefault(defaultValue, decoder.decode(json)))
+    new Decoder((json, context) =>
+      Result.ok(Result.withDefault(defaultValue, decoder.decode(json, context)))
     );
 
   /**
@@ -616,48 +608,39 @@ export class Decoder<A> {
    * ```
    */
   static valueAt = <A>(paths: (string | number)[], decoder: Decoder<A>): Decoder<A> =>
-    new Decoder((json: unknown) => {
+    new Decoder((json, context) => {
       let jsonAtPath: any = json;
       for (let i: number = 0; i < paths.length; i++) {
+        const pathContext = appendAt(context, printPath(paths.slice(0, i + 1)));
         if (jsonAtPath === undefined) {
-          return Result.err({
-            at: printPath(paths.slice(0, i + 1)),
-            message: 'path does not exist'
-          });
+          return decoderError(pathContext, 'path does not exist');
         } else if (typeof paths[i] === 'string' && !isJsonObject(jsonAtPath)) {
-          return Result.err({
-            at: printPath(paths.slice(0, i + 1)),
-            message: expectedGot('an object', jsonAtPath)
-          });
+          return decoderError(pathContext, expectedGot('an object', jsonAtPath));
         } else if (typeof paths[i] === 'number' && !isJsonArray(jsonAtPath)) {
-          return Result.err({
-            at: printPath(paths.slice(0, i + 1)),
-            message: expectedGot('an array', jsonAtPath)
-          });
+          return decoderError(pathContext, expectedGot('an array', jsonAtPath));
         } else {
           jsonAtPath = jsonAtPath[paths[i]];
         }
       }
-      return Result.mapError(
-        error =>
-          jsonAtPath === undefined
-            ? {at: printPath(paths), message: 'path does not exist'}
-            : prependAt(printPath(paths), error),
-        decoder.decode(jsonAtPath)
-      );
+      const decoderContext = appendAt(context, printPath(paths));
+      const r = decoder.decode(jsonAtPath, decoderContext);
+      if (Result.isErr(r) && jsonAtPath === undefined) {
+        return decoderError(decoderContext, 'path does not exist');
+      } else {
+        return r;
+      }
     });
 
   /**
    * Decoder that ignores the input json and always succeeds with `fixedValue`.
    */
-  static succeed = <A>(fixedValue: A): Decoder<A> =>
-    new Decoder((json: unknown) => Result.ok(fixedValue));
+  static succeed = <A>(fixedValue: A): Decoder<A> => new Decoder((_, __) => Result.ok(fixedValue));
 
   /**
    * Decoder that ignores the input json and always fails with `errorMessage`.
    */
   static fail = <A>(errorMessage: string): Decoder<A> =>
-    new Decoder((json: unknown) => Result.err({message: errorMessage}));
+    new Decoder((_, context) => decoderError(context, errorMessage));
 
   /**
    * Decoder that allows for validating recursive data structures. Unlike with
@@ -680,7 +663,7 @@ export class Decoder<A> {
    * ```
    */
   static lazy = <A>(mkDecoder: () => Decoder<A>): Decoder<A> =>
-    new Decoder((json: unknown) => mkDecoder().decode(json));
+    new Decoder((json, context) => mkDecoder().decode(json, context));
 
   /**
    * Run the decoder and return a `Result` with either the decoded value or a
@@ -705,16 +688,7 @@ export class Decoder<A> {
    * // }
    * ```
    */
-  run = (json: unknown): RunResult<A> =>
-    Result.mapError(
-      error => ({
-        kind: 'DecoderError' as 'DecoderError',
-        input: json,
-        at: 'input' + (error.at || ''),
-        message: error.message || ''
-      }),
-      this.decode(json)
-    );
+  run = (json: unknown): DecoderResult<A> => this.decode(json, {input: json, at: 'input'});
 
   /**
    * Run the decoder as a `Promise`.
@@ -739,7 +713,7 @@ export class Decoder<A> {
    * ```
    */
   map = <B>(f: (value: A) => B): Decoder<B> =>
-    new Decoder((json: unknown) => Result.map(f, this.decode(json)));
+    new Decoder((json, context) => Result.map(f, this.decode(json, context)));
 
   /**
    * Chain together a sequence of decoders. The first decoder will run, and
@@ -790,8 +764,8 @@ export class Decoder<A> {
    * ```
    */
   andThen = <B>(f: (value: A) => Decoder<B>): Decoder<B> =>
-    new Decoder((json: unknown) =>
-      Result.andThen(value => f(value).decode(json), this.decode(json))
+    new Decoder((json, context) =>
+      Result.andThen(value => f(value).decode(json, context), this.decode(json, context))
     );
 
   /**
