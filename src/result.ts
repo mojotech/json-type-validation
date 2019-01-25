@@ -100,6 +100,12 @@ export const successes = <A>(results: Result<A, any>[]): A[] =>
   results.reduce((acc: A[], r: Result<A, any>) => (r.ok === true ? acc.concat(r.result) : acc), []);
 
 /**
+ * Given an array of `Result`s, return the error values.
+ */
+export const errors = <E>(results: Result<any, E>[]): E[] =>
+  results.reduce((acc: E[], r: Result<any, E>) => (r.ok === false ? acc.concat(r.error) : acc), []);
+
+/**
  * Apply `f` to the result of an `Ok`, or pass the error through.
  */
 export const map = <A, B, E>(f: (value: A) => B, r: Result<A, E>): Result<B, E> =>

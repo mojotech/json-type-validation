@@ -1059,11 +1059,16 @@ describe('Result', () => {
     });
   });
 
-  it('can return successes from an array of decoded values', () => {
+  describe('can filter and unwrap arrays of Results', () => {
     const json: unknown = [1, true, 2, 3, 'five', 4, []];
-    const jsonArray: unknown[] = Result.withDefault([], array().run(json));
-    const numbers: number[] = Result.successes(jsonArray.map(number().run));
+    const numberResults = Result.withDefault([], array(result(number())).run(json));
 
-    expect(numbers).toEqual([1, 2, 3, 4]);
+    it('returns successes from an array of decoded values', () => {
+      expect(Result.successes(numberResults)).toEqual([1, 2, 3, 4]);
+    });
+
+    it('returns failures from an array of decoded values', () => {
+      expect(Result.errors(numberResults).map(({input}) => input)).toEqual([true, 'five', []]);
+    });
   });
 });
