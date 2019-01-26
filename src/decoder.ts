@@ -731,6 +731,14 @@ export class Decoder<A> {
     new Decoder((json, context) => Result.map(f, this.decode(json, context)));
 
   /**
+   * Construct a new decoder that applies a transformation to an error message
+   * on failure. If the decoder fails then `f` will be applied to the error. If
+   * it succeeds the value will propagated through.
+   */
+  mapError = (f: (error: DecoderError) => DecoderError): Decoder<A> =>
+    new Decoder((json, context) => Result.mapError(f, this.decode(json, context)));
+
+  /**
    * Chain together a sequence of decoders. The first decoder will run, and
    * then the function will determine what decoder to run second. If the result
    * of the first decoder succeeds then `f` will be applied to the decoded
