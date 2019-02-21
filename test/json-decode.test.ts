@@ -138,13 +138,13 @@ describe('unknownJson', () => {
 
 describe('constant', () => {
   it('works for string-literals', () => {
-    const decoder = constant<'zero'>('zero');
+    const decoder: Decoder<'zero'> = constant('zero');
 
     expect(decoder.run('zero')).toEqual({ok: true, result: 'zero'});
   });
 
   it('fails when given two different values', () => {
-    const decoder = constant<42>(42);
+    const decoder: Decoder<42> = constant(42);
 
     expect(decoder.run(true)).toMatchObject({
       ok: false,
@@ -180,8 +180,7 @@ describe('constant', () => {
   });
 
   it('can decode a constant array', () => {
-    type A = [1, 2, 3];
-    const decoder: Decoder<A> = constant<A>([1, 2, 3]);
+    const decoder: Decoder<[1, 2, 3]> = constant([1, 2, 3]);
 
     expect(decoder.run([1, 2, 3])).toEqual({ok: true, result: [1, 2, 3]});
     expect(decoder.run([1, 2, 3, 4])).toMatchObject({
@@ -191,8 +190,7 @@ describe('constant', () => {
   });
 
   it('can decode a constant object', () => {
-    type O = {a: true; b: 12};
-    const decoder: Decoder<O> = constant<O>({a: true, b: 12});
+    const decoder: Decoder<{a: true; b: 12}> = constant({a: true, b: 12});
 
     expect(decoder.run({a: true, b: 12})).toEqual({ok: true, result: {a: true, b: 12}});
     expect(decoder.run({a: true, b: 7})).toMatchObject({
@@ -579,8 +577,8 @@ describe('union', () => {
   type C = A | B;
 
   const decoder: Decoder<C> = union(
-    object({kind: constant<'a'>('a'), value: number()}),
-    object({kind: constant<'b'>('b'), value: boolean()})
+    object({kind: constant('a'), value: number()}),
+    object({kind: constant('b'), value: boolean()})
   );
 
   it('can decode a value that matches one of the union types', () => {
