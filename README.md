@@ -63,7 +63,7 @@ input. Decoders are concise, composable, and typecheck against our defined types
 and interfaces.
 
 ```typescript
-import {Decoder, object, string, optional, number, boolean} from 'json-type-validation'
+import {Decoder, object, string, optional, number, boolean} from '@mojotech/json-type-validation'
 
 const petDecoder: Decoder<Pet> = object({
   name: string(),
