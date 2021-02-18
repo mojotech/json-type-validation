@@ -293,6 +293,43 @@ export class Decoder<A> {
     });
   }
 
+  static strictObject<A>(decoders?: DecoderObject<A>) {
+    const decoderKeys = isJsonObject(decoders) ? Object.keys(decoders) : [];
+    return new Decoder((json: unknown) => {
+      const invalidKeys = isJsonObject(json)
+        ? Object.keys(json).filter((key: string) => !decoderKeys.some((validKey: string) => key === validKey))
+        : [];
+
+      if (invalidKeys.length > 0) {
+        return Result.err({message: `the following keys are present but not expected: ${invalidKeys.join(", ")}`});
+      }
+
+      if (isJsonObject(json) && decoders) {
+        let obj: any = {};
+        for (const key in decoders) {
+          if (decoders.hasOwnProperty(key)) {
+            const r = decoders[key].decode(json[key]);
+            if (r.ok === true) {
+              // tslint:disable-next-line:strict-type-predicates
+              if (r.result !== undefined) {
+                obj[key] = r.result;
+              }
+            } else if (json[key] === undefined) {
+              return Result.err({message: `the key '${key}' is required but was not present`});
+            } else {
+              return Result.err(prependAt(`.${key}`, r.error));
+            }
+          }
+        }
+        return Result.ok(obj);
+      } else if (isJsonObject(json)) {
+        return Result.ok(json);
+      } else {
+        return Result.err({message: expectedGot('an object', json)});
+      }
+    });
+  }
+
   /**
    * Decoder for json arrays. Runs `decoder` on each array element, and succeeds
    * if all elements are successfully decoded. If no `decoder` argument is

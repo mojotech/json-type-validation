@@ -9,6 +9,7 @@ import {
   unknownJson,
   constant,
   object,
+  strictObject,
   array,
   dict,
   optional,
@@ -290,6 +291,109 @@ describe('object', () => {
       ok: true,
       result: ['n', 'i', 'c', 'e']
     });
+  });
+});
+
+describe('strictObject', () => {
+  describe('when given JSON with extra keys not defined on decoder', () => {
+    it('returns an error result for the extra keys', () => {
+      const decoder = strictObject({ a: number() });
+
+      expect(decoder.run({
+          a: 5,
+          b: 6
+        })).toMatchObject({
+        ok: false,
+        error: {
+          message: 'the following keys are present but not expected: b',
+          at: 'input',
+          input: {a: 5, b: 6},
+          kind: 'DecoderError'
+        }
+      });
+    });
+  });
+
+  describe('when given valid JSON', () => {
+    it('can decode a simple object', () => {
+      const decoder = strictObject({x: number()});
+
+      expect(decoder.run({x: 5})).toMatchObject({ok: true, result: {x: 5}});
+    });
+
+    it('can decode a nested object', () => {
+      const decoder = object({
+        payload: strictObject({x: number(), y: number()}),
+        error: constant(false)
+      });
+      const json = {payload: {x: 5, y: 2}, error: false};
+
+      expect(decoder.run(json)).toEqual({ok: true, result: json});
+    });
+  });
+
+  describe('when given incorrect JSON', () => {
+    it('fails when not given an object', () => {
+      const decoder = strictObject({x: number()});
+
+      expect(decoder.run('true')).toMatchObject({
+        ok: false,
+        error: {at: 'input', message: 'expected an object, got a string'}
+      });
+    });
+
+    it('fails when given an array', () => {
+      const decoder = strictObject({x: number()});
+
+      expect(decoder.run([])).toMatchObject({
+        ok: false,
+        error: {at: 'input', message: 'expected an object, got an array'}
+      });
+    });
+
+    it('reports a missing key', () => {
+      const decoder = strictObject({x: number()});
+
+      expect(decoder.run({})).toMatchObject({
+        ok: false,
+        error: {at: 'input', message: "the key 'x' is required but was not present"}
+      });
+    });
+
+    it('reports invalid values', () => {
+      const decoder = strictObject({name: string()});
+
+      expect(decoder.run({name: 5})).toMatchObject({
+        ok: false,
+        error: {at: 'input.name', message: 'expected a string, got a number'}
+      });
+    });
+
+    it('properly displays nested errors', () => {
+      const decoder = strictObject({
+        hello: strictObject({
+          hey: strictObject({
+            'Howdy!': string()
+          })
+        })
+      });
+
+      const error = decoder.run({hello: {hey: {'Howdy!': {}}}});
+      expect(error).toMatchObject({
+        ok: false,
+        error: {at: 'input.hello.hey.Howdy!', message: 'expected a string, got an object'}
+      });
+    });
+  });
+
+  it('ignores optional fields that decode to undefined', () => {
+    const decoder = strictObject({
+      a: number(),
+      b: optional(string())
+    });
+
+    expect(decoder.run({a: 12, b: 'hats'})).toEqual({ok: true, result: {a: 12, b: 'hats'}});
+    expect(decoder.run({a: 12})).toEqual({ok: true, result: {a: 12}});
   });
 });
 

@@ -11,6 +11,7 @@ export {
   unknownJson,
   constant,
   object,
+  strictObject,
   array,
   tuple,
   dict,
