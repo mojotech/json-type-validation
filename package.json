@@ -6,7 +6,7 @@
     "TypeScript",
     "JSON"
   ],
-  "main": "dist/index.umd.js",
+  "main": "dist/index.js",
   "module": "dist/index.es5.js",
   "typings": "dist/types/index.d.ts",
   "files": [
@@ -62,8 +62,8 @@
   },
   "devDependencies": {
     "@types/jest": "^22.2.3",
-    "@types/lodash.isequal": "^4.5.3",
     "@types/node": "^10.5.3",
+    "@types/lodash": "^4.5.0",
     "colors": "^1.1.2",
     "cross-env": "^5.0.1",
     "jest": "^22.0.2",
@@ -84,6 +84,6 @@
     "typescript": "~3.1.0"
   },
   "dependencies": {
-    "lodash.isequal": "^4.5.0"
+    "lodash": "^4.5.0"
   }
 }
