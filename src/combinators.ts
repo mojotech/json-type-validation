@@ -23,6 +23,9 @@ export const constant = Decoder.constant;
 /** See `Decoder.object` */
 export const object = Decoder.object;
 
+/** See `Decoder.strictObject` */
+export const strictObject = Decoder.strictObject;
+
 /** See `Decoder.array` */
 export const array = Decoder.array;
 
