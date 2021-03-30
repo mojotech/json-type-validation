@@ -1,7 +1,7 @@
 import * as Result from './result';
 export {Result};
 
-export {Decoder, DecoderError, isDecoderError, DecoderObject} from './decoder';
+export {Decoder, DecoderResult, DecoderError, isDecoderError, DecoderObject} from './decoder';
 
 export {
   string,
@@ -22,5 +22,6 @@ export {
   valueAt,
   succeed,
   fail,
+  result,
   lazy
 } from './combinators';

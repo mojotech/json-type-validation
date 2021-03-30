@@ -1,14 +1,4 @@
-import {
-  Decoder,
-  string,
-  number,
-  boolean,
-  constant,
-  array,
-  dict,
-  union,
-  lazy
-} from '../src/index';
+import {Decoder, string, number, boolean, constant, array, dict, union, lazy} from '../src/index';
 
 describe('create tagged json objects', () => {
   type TaggedJson =

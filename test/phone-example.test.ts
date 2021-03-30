@@ -112,8 +112,8 @@ describe('decode phone number objects', () => {
         at: 'input[1]',
         message: [
           'expected a value matching one of the decoders, got the errors ',
-          `["at error: the key 'international' is required but was not present", `,
-          `"at error: the key 'international' is required but was not present"]`
+          `["at input[1]: the key 'international' is required but was not present", `,
+          `"at input[1]: the key 'international' is required but was not present"]`
         ].join('')
       }
     });

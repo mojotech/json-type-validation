@@ -56,5 +56,8 @@ export const succeed = Decoder.succeed;
 /** See `Decoder.fail` */
 export const fail = Decoder.fail;
 
+/** See `Decoder.result` */
+export const result = Decoder.result;
+
 /** See `Decoder.lazy` */
 export const lazy = Decoder.lazy;
