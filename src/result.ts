@@ -89,7 +89,7 @@ export const withException = <V>(r: Result<V, any>): V => {
   if (r.ok === true) {
     return r.result;
   } else {
-    throw r.error;
+    throw new Error(r.error);
   }
 };
 
