@@ -1,4 +1,4 @@
-[@mojotech/json-type-validation](../README.md) > ["result"](../modules/_result_.md) > [Err](../interfaces/_result_.err.md)
+[yuyaryshev-json-type-validation](../README.md) > ["result"](../modules/_result_.md) > [Err](../interfaces/_result_.err.md)
 
 # Interface: Err
 

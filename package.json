@@ -1,6 +1,6 @@
 {
-  "name": "@mojotech/json-type-validation",
-  "version": "3.1.0",
+  "name": "yuyaryshev-json-type-validation",
+  "version": "3.1.5",
   "description": "runtime type checking and validation of untyped JSON data",
   "keywords": [
     "TypeScript",
@@ -63,7 +63,6 @@
   "devDependencies": {
     "@types/jest": "^22.2.3",
     "@types/node": "^10.5.3",
-    "@types/lodash": "^4.5.0",
     "colors": "^1.1.2",
     "cross-env": "^5.0.1",
     "jest": "^22.0.2",
@@ -83,7 +82,5 @@
     "typedoc-plugin-markdown": "^1.0.13",
     "typescript": "~3.1.0"
   },
-  "dependencies": {
-    "lodash": "^4.5.0"
-  }
+  "dependencies": {}
 }
