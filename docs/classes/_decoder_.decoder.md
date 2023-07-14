@@ -1,4 +1,4 @@
-[@mojotech/json-type-validation](../README.md) > ["decoder"](../modules/_decoder_.md) > [Decoder](../classes/_decoder_.decoder.md)
+[@yuyaryshev/json-type-validation](../README.md) > ["decoder"](../modules/_decoder_.md) > [Decoder](../classes/_decoder_.decoder.md)
 
 # Class: Decoder
 
@@ -384,101 +384,90 @@ ___
 
 ### `<Static>` constant
 
-▸ **constant**(value: *`true`*): [Decoder](_decoder_.decoder.md)<`true`>
+▸ **constant**T(value: *`T`*): [Decoder](_decoder_.decoder.md)<`T`>
 
-▸ **constant**(value: *`false`*): [Decoder](_decoder_.decoder.md)<`false`>
+▸ **constant**T,U(value: *`U`*): [Decoder](_decoder_.decoder.md)<`U`>
 
-▸ **constant**A(value: *`A`*): [Decoder](_decoder_.decoder.md)<`A`>
+▸ **constant**T,U(value: *`U`*): [Decoder](_decoder_.decoder.md)<`U`>
+
+▸ **constant**T(value: *`T`*): [Decoder](_decoder_.decoder.md)<`T`>
 
 Decoder primitive that only matches on exact values.
 
-Note that `constant('string to match')` returns a `Decoder<string>` which fails if the input is not equal to `'string to match'`. In many cases this is sufficient, but in some situations typescript requires that the decoder type be a type-literal. In such a case you must provide the type parameter, which looks like `constant<'string to match'>('string to match')`.
-
-Providing the type parameter is only necessary for type-literal strings and numbers, as detailed by this table:
+For primitive values and shallow structures of primitive values `constant` will infer an exact literal type:
 
 ```
-| Decoder                      | Type                 |
- | ---------------------------- | ---------------------|
- | constant(true)               | Decoder<true>        |
- | constant(false)              | Decoder<false>       |
- | constant(null)               | Decoder<null>        |
- | constant('alaska')           | Decoder<string>      |
- | constant<'alaska'>('alaska') | Decoder<'alaska'>    |
- | constant(50)                 | Decoder<number>      |
- | constant<50>(50)             | Decoder<50>          |
- | constant([1,2,3])            | Decoder<number[]>    |
- | constant<[1,2,3]>([1,2,3])   | Decoder<[1,2,3]>     |
- | constant({x: 't'})           | Decoder<{x: string}> |
- | constant<{x: 't'}>({x: 't'}) | Decoder<{x: 't'}>    |
+| Decoder                      | Type                          |
+ | ---------------------------- | ------------------------------|
+ | constant(true)               | Decoder<true>                 |
+ | constant(false)              | Decoder<false>                |
+ | constant(null)               | Decoder<null>                 |
+ | constant(undefined)          | Decoder<undefined>            |
+ | constant('alaska')           | Decoder<'alaska'>             |
+ | constant(50)                 | Decoder<50>                   |
+ | constant([1,2,3])            | Decoder<[1,2,3]>              |
+ | constant({x: 't'})           | Decoder<{x: 't'}>             |
 ```
 
-One place where this happens is when a type-literal is in an interface:
+Inference breaks on nested structures, which require an annotation to get the literal type:
 
 ```
-interface Bear {
-  kind: 'bear';
-  isBig: boolean;
-}
-
-const bearDecoder1: Decoder<Bear> = object({
-  kind: constant('bear'),
-  isBig: boolean()
-});
-// Type 'Decoder<{ kind: string; isBig: boolean; }>' is not assignable to
-// type 'Decoder<Bear>'. Type 'string' is not assignable to type '"bear"'.
-
-const bearDecoder2: Decoder<Bear> = object({
-  kind: constant<'bear'>('bear'),
-  isBig: boolean()
-});
-// no compiler errors
+| Decoder                      | Type                          |
+ | -----------------------------|-------------------------------|
+ | constant([1,[2]])            | Decoder<(number|number[])[]>  |
+ | constant<[1,[2]]>([1,[2]])   | Decoder<[1,[2]]>              |
+ | constant({x: [1]})           | Decoder<{x: number[]}>        |
+ | constant<{x: [1]}>({x: [1]}) | Decoder<{x: [1]}>             |
 ```
-
-Another is in type-literal unions:
-
-```
-type animal = 'bird' | 'bear';
-
-const animalDecoder1: Decoder<animal> = union(
-  constant('bird'),
-  constant('bear')
-);
-// Type 'Decoder<string>' is not assignable to type 'Decoder<animal>'.
-// Type 'string' is not assignable to type 'animal'.
-
-const animalDecoder2: Decoder<animal> = union(
-  constant<'bird'>('bird'),
-  constant<'bear'>('bear')
-);
-// no compiler errors
-```
-
-**Parameters:**
-
-| Param | Type |
-| ------ | ------ |
-| value | `true` |
-
-**Returns:** [Decoder](_decoder_.decoder.md)<`true`>
-
-**Parameters:**
-
-| Param | Type |
-| ------ | ------ |
-| value | `false` |
-
-**Returns:** [Decoder](_decoder_.decoder.md)<`false`>
 
 **Type parameters:**
 
-#### A 
+#### T :   `string` &#124; `number` &#124; `boolean` &#124; `[]`
+
 **Parameters:**
 
 | Param | Type |
 | ------ | ------ |
-| value | `A` |
+| value | `T` |
 
-**Returns:** [Decoder](_decoder_.decoder.md)<`A`>
+**Returns:** [Decoder](_decoder_.decoder.md)<`T`>
+
+**Type parameters:**
+
+#### T :   `string` &#124; `number` &#124; `boolean`
+
+#### U :  [`T`, `Array`]
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| value | `U` |
+
+**Returns:** [Decoder](_decoder_.decoder.md)<`U`>
+
+**Type parameters:**
+
+#### T :   `string` &#124; `number` &#124; `boolean`
+
+#### U :  `Record`<`string`, `T`>
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| value | `U` |
+
+**Returns:** [Decoder](_decoder_.decoder.md)<`U`>
+
+**Type parameters:**
+
+#### T 
+**Parameters:**
+
+| Param | Type |
+| ------ | ------ |
+| value | `T` |
+
+**Returns:** [Decoder](_decoder_.decoder.md)<`T`>
 
 ___
 <a id="dict"></a>

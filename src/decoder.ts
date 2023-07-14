@@ -1,5 +1,5 @@
 import * as Result from './result';
-import isEqual from "lodash/isEqual"
+import {isEqual} from "./isEqual"
 
 /**
  * Information describing how json data failed to match a decoder.

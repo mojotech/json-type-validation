@@ -32,6 +32,7 @@ This library uses the [combinator pattern](https://wiki.haskell.org/Combinator_p
 * ["combinators"](modules/_combinators_.md)
 * ["decoder"](modules/_decoder_.md)
 * ["index"](modules/_index_.md)
+* ["isEqual"](modules/_isequal_.md)
 * ["result"](modules/_result_.md)
 
 ---

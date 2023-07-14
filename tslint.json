@@ -5,5 +5,10 @@
   ],
   "rules": {
     "strict-type-predicates": false
+  },
+  "linterOptions": {
+      "exclude": [
+          "src/isEqual.ts"
+      ]
   }
 }
