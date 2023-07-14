@@ -1,4 +1,4 @@
-[@yuyaryshev/json-type-validation](../README.md) > ["result"](../modules/_result_.md) > [Ok](../interfaces/_result_.ok.md)
+[yuyaryshev-json-type-validation](../README.md) > ["result"](../modules/_result_.md) > [Ok](../interfaces/_result_.ok.md)
 
 # Interface: Ok
 

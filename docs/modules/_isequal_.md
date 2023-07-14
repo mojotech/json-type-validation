@@ -1,4 +1,4 @@
-[@yuyaryshev/json-type-validation](../README.md) > ["isEqual"](../modules/_isequal_.md)
+[yuyaryshev-json-type-validation](../README.md) > ["isEqual"](../modules/_isequal_.md)
 
 # External module: "isEqual"
 

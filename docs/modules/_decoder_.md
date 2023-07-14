@@ -1,4 +1,4 @@
-[@yuyaryshev/json-type-validation](../README.md) > ["decoder"](../modules/_decoder_.md)
+[yuyaryshev-json-type-validation](../README.md) > ["decoder"](../modules/_decoder_.md)
 
 # External module: "decoder"
 

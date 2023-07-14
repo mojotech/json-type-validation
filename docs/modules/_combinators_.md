@@ -1,4 +1,4 @@
-[@yuyaryshev/json-type-validation](../README.md) > ["combinators"](../modules/_combinators_.md)
+[yuyaryshev-json-type-validation](../README.md) > ["combinators"](../modules/_combinators_.md)
 
 # External module: "combinators"
 

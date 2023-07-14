@@ -1,6 +1,6 @@
 {
   "name": "yuyaryshev-json-type-validation",
-  "version": "3.1.1",
+  "version": "3.1.5",
   "description": "runtime type checking and validation of untyped JSON data",
   "keywords": [
     "TypeScript",

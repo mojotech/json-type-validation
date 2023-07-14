@@ -1,4 +1,4 @@
-[@yuyaryshev/json-type-validation](../README.md) > ["result"](../modules/_result_.md)
+[yuyaryshev-json-type-validation](../README.md) > ["result"](../modules/_result_.md)
 
 # External module: "result"
 
